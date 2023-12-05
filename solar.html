@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Solar System with Three.js</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://threejs.org/build/three.js"></script>
+    <script>
+        // Scene, Camera, and Renderer Setup
+        let scene = new THREE.Scene();
+        let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Setting the background color of the scene to deep space blue
+        renderer.setClearColor(0x132F5F); // Deep space blue color
+
+        // Lighting
+        let ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+        scene.add(ambientLight);
+        let sunLight = new THREE.PointLight(0xffffff, 1.5, 100);
+        scene.add(sunLight);
+
+        // Sun
+        let sunGeometry = new THREE.SphereGeometry(10, 32, 32);
+        let sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+        let sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        scene.add(sun);
+
+        // Planets Data
+        const planets = [
+            { name: 'Mercury', color: 0xAAAAAA, size: 0.1, distance: 12, speed: 0.047 },
+            { name: 'Venus', color: 0xFFD700, size: 0.25, distance: 18, speed: 0.035 },
+            { name: 'Earth', color: 0x0000FF, size: 0.26, distance: 24, speed: 0.03 },
+            { name: 'Mars', color: 0xFF4500, size: 0.14, distance: 30, speed: 0.024 },
+            { name: 'Jupiter', color: 0xF4A460, size: 2.8, distance: 42, speed: 0.013 },
+            { name: 'Saturn', color: 0xDAA520, size: 2.35, distance: 55, speed: 0.009 },
+            { name: 'Uranus', color: 0x48D1CC, size: 1.02, distance: 68, speed: 0.006 },
+            { name: 'Neptune', color: 0x1E90FF, size: 1.0, distance: 82, speed: 0.005 }
+        ];
+
+        // Create Planets and Orbits
+        planets.forEach(planet => {
+            let geometry = new THREE.SphereGeometry(planet.size, 32, 32);
+            let material = new THREE.MeshLambertMaterial({ color: planet.color });
+            let sphere = new THREE.Mesh(geometry, material);
+            sphere.position.x = planet.distance;
+            scene.add(sphere);
+            planet.mesh = sphere;
+
+            // Orbit
+            let orbitGeometry = new THREE.RingGeometry(planet.distance - 0.2, planet.distance + 0.2, 64, 1);
+            let orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+            let orbitMesh = new THREE.Mesh(orbitGeometry, orbitMaterial);
+            orbitMesh.rotation.x = Math.PI / 2;
+            scene.add(orbitMesh);
+        });
+
+        // Camera Position
+        camera.position.x = 0;
+        camera.position.y = Math.sin(Math.PI / 6) * 120; // Elevated by 30 degrees
+        camera.position.z = Math.cos(Math.PI / 6) * 120;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate Planets
+            planets.forEach(planet => {
+                planet.mesh.position.x = planet.distance * Math.cos(planet.speed * Date.now() * 0.001);
+                planet.mesh.position.z = planet.distance * Math.sin(planet.speed * Date.now() * 0.001);
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
