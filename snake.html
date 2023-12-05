@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        #gameCanvas {
+            border: 1px solid black;
+            display: none;
+        }
+        #startMenu {
+            margin-top: -50px;
+        }
+        #gameOver {
+            color: red;
+            font-size: 30px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="startMenu">
+        <button id="startButton">Start Game</button>
+        <div>
+            Difficulty:
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="gameOver">Game Over</div>
+
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+    <script>
+        var canvas = document.getElementById('gameCanvas');
+        var ctx = canvas.getContext('2d');
+        var startButton = document.getElementById('startButton');
+        var difficultySelect = document.getElementById('difficulty');
+        var gameOverText = document.getElementById('gameOver');
+        var snake = [];
+        var dx = 10;
+        var dy = 0;
+        var bean = {x: 0, y: 0};
+        var walls = [];
+        var baseSpeed = 100;
+
+        function resetGame() {
+            snake = [{x: 150, y: 150}, {x: 140, y: 150}, {x: 130, y: 150}, {x: 120, y: 150}];
+            dx = 10;
+            dy = 0;
+            createBean();
+            gameOverText.style.display = 'none';
+            canvas.style.display = 'block';
+            walls = [];
+            var difficulty = difficultySelect.value;
+            if (difficulty === 'normal' || difficulty === 'hard') {
+                createWalls(difficulty === 'normal' ? 5 : 7);
+            }
+            main();
+        }
+
+        function createWalls(numberOfWalls) {
+            for (let i = 0; i < numberOfWalls; i++) {
+                let newWall;
+                let overlap;
+                do {
+                    newWall = {
+                        x: randomTen(0, canvas.width - 30),
+                        y: randomTen(0, canvas.height - 30),
+                        length: randomTen(20, Math.min(canvas.width, canvas.height) / 3),
+                        orientation: Math.random() < 0.5 ? 'horizontal' : 'vertical'
+                    };
+                    overlap = walls.some(wall => isOverlapping(wall, newWall));
+                } while (overlap);
+                walls.push(newWall);
+            }
+        }
+
+        function isOverlapping(wall1, wall2) {
+            // Assuming walls are rectangles, check if wall1 and wall2 overlap
+            // This is a simple AABB (Axis-Aligned Bounding Box) collision detection
+            var horizontalOverlap = wall1.x < wall2.x + wall2.length && wall1.x + wall1.length > wall2.x;
+            var verticalOverlap = wall1.y < wall2.y + 10 && wall1.y + 10 > wall2.y;
+            if (wall1.orientation === 'vertical') {
+                horizontalOverlap = wall1.x < wall2.x + 10 && wall1.x + 10 > wall2.x;
+                verticalOverlap = wall1.y < wall2.y + wall2.length && wall1.y + wall1.length > wall2.y;
+            }
+            return horizontalOverlap && verticalOverlap;
+        }
+
+        function main() {
+            var currentSpeed = difficultySelect.value === 'hard' ? baseSpeed * 0.8 : baseSpeed;
+            if (gameOver()) {
+                gameOverText.style.display = 'block';
+                canvas.style.display = 'none';
+                return;
+            }
+            setTimeout(function onTick() {
+                clearCanvas();
+                walls.forEach(drawWall);
+                drawBean();
+                moveSnake();
+                drawSnake();
+                main();
+            }, currentSpeed);
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawSnakePart(snakePart) {
+            ctx.fillStyle = 'lightgreen';
+            ctx.strokeStyle = 'darkgreen';
+            ctx.fillRect(snakePart.x, snakePart.y, 10, 10);
+            ctx.strokeRect(snakePart.x, snakePart.y, 10, 10);
+        }
+
+        function drawSnake() {
+            snake.forEach(drawSnakePart);
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            snake.unshift(head);
+            const hasEatenBean = snake[0].x === bean.x && snake[0].y === bean.y;
+            if (hasEatenBean) {
+                createBean();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function changeDirection(event) {
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+            const keyPressed = event.keyCode;
+            const goingUp = dy === -10;
+            const goingDown = dy === 10;
+            const goingRight = dx === 10;
+            const goingLeft = dx === -10;
+            if (keyPressed === LEFT_KEY && !goingRight) {
+                dx = -10;
+                dy = 0;
+            }
+            if (keyPressed === UP_KEY && !goingDown) {
+                dx = 0;
+                dy = -10;
+            }
+            if (keyPressed === RIGHT_KEY && !goingLeft) {
+                dx = 10;
+                dy = 0;
+            }
+            if (keyPressed === DOWN_KEY && !goingUp) {
+                dx = 0;
+                dy = 10;
+            }
+        }
+
+        function randomTen(min, max) {
+            return Math.round((Math.random() * (max - min) + min) / 10) * 10;
+        }
+
+        function createBean() {
+            bean.x = randomTen(0, canvas.width - 10);
+            bean.y = randomTen(0, canvas.height - 10);
+            snake.forEach(function isBeanOnSnake(part) {
+                const beanIsOnSnake = part.x === bean.x && part.y === bean.y;
+                if (beanIsOnSnake) createBean();
+            });
+        }
+
+        function drawBean() {
+            ctx.fillStyle = 'red';
+            ctx.strokeStyle = 'darkred';
+            ctx.fillRect(bean.x, bean.y, 10, 10);
+            ctx.strokeRect(bean.x, bean.y, 10, 10);
+        }
+
+        function drawWall(wall) {
+            ctx.fillStyle = 'grey';
+            if (wall.orientation === 'horizontal') {
+                ctx.fillRect(wall.x, wall.y, wall.length, 10);
+            } else {
+                ctx.fillRect(wall.x, wall.y, 10, wall.length);
+            }
+        }
+
+        function gameOver() {
+            for (let i = 4; i < snake.length; i++) {
+                if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+            }
+            const hitLeftWall = snake[0].x < 0;
+            const hitRightWall = snake[0].x > canvas.width - 10;
+            const hitTopWall = snake[0].y < 0;
+            const hitBottomWall = snake[0].y > canvas.height - 10;
+            const hitGameWall = walls.some(wall => snakeCollidesWithWall(snake[0], wall));
+            return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall || hitGameWall;
+        }
+
+        function snakeCollidesWithWall(snakeHead, wall) {
+            if (wall.orientation === 'horizontal') {
+                return snakeHead.y === wall.y && snakeHead.x + 10 > wall.x && snakeHead.x < wall.x + wall.length;
+            } else {
+                return snakeHead.x === wall.x && snakeHead.y + 10 > wall.y && snakeHead.y < wall.y + wall.length;
+            }
+        }
+
+        startButton.addEventListener('click', function() {
+            resetGame();
+        });
+
+        document.addEventListener("keydown", changeDirection);
+    </script>
+</body>
+</html>
