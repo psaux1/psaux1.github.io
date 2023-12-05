@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Matrix</title>
+    <style>
+        body {
+            background: black;
+            overflow: hidden;
+        }
+
+        .letter {
+            font-family: monospace;
+            font-size: 15px;
+            color: lime;
+            position: absolute;
+            opacity: 1;
+            animation: fall 2s linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -20px;
+                opacity: 1;
+            }
+            80% {
+                opacity: 0.25;
+            }
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="matrix"></div>
+    <script>
+        var matrix = document.getElementById("matrix");
+
+        setInterval(function() {
+            var x = window.innerWidth * Math.random();
+            var letter = document.createElement("span");
+            letter.style.left = x + "px";
+            letter.className = "letter";
+            letter.textContent = String.fromCharCode(0x30A0 + Math.random() * (0x30FF-0x30A0+1));
+            matrix.appendChild(letter);
+            setTimeout(function() {
+                matrix.removeChild(letter);
+            }, 4000);
+        }, 20);
+    </script>
+</body>
+</html>

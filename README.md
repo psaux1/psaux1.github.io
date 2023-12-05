@@ -10,3 +10,4 @@ I am documenting a group of chatgpt toys here just for fun. All codes were writt
 1. [Cube](https://psaux1.github.io/cube.html)
 2. [Solar System](https://psaux1.github.io/solar.html)
 3. [Snake Game](https://psaux1.github.io/snake.html)
+4. [Matrix Rain](https://psaux1.github.io/matrix.html)
