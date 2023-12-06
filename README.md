@@ -11,3 +11,4 @@ I am documenting a group of chatgpt toys here just for fun. All codes were writt
 2. [Solar System](https://psaux1.github.io/solar.html)
 3. [Snake Game](https://psaux1.github.io/snake.html)
 4. [Matrix Rain](https://psaux1.github.io/matrix.html)
+5. [Thomas Schelling's Segregation Model](https://psaux1.github.io/tom.html), see wiki (here)[https://en.wikipedia.org/wiki/Schelling%27s_model_of_segregation].

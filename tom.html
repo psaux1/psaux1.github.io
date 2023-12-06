@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chessboard Simulation</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="chessboard" width="500" height="500"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('chessboard');
+            const ctx = canvas.getContext('2d');
+            const size = 100;
+            const cellSize = canvas.width / size;
+            let board = createBoard(size, size, 5000, 500);
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    let j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            function createBoard(width, height, numWhite, numBlack) {
+                let board = new Array(width).fill(null).map(() => new Array(height).fill(0));
+                let positions = [];
+                
+                for (let i = 0; i < width; i++) {
+                    for (let j = 0; j < height; j++) {
+                        positions.push([i, j]);
+                    }
+                }
+
+                shuffle(positions);
+
+                for (let i = 0; i < numWhite; i++) {
+                    let [x, y] = positions[i];
+                    board[x][y] = 1; // 1 represents white
+                }
+
+                for (let i = numWhite; i < numWhite + numBlack; i++) {
+                    let [x, y] = positions[i];
+                    board[x][y] = -1; // -1 represents black
+                }
+
+                return board;
+            }
+
+            function drawBoard() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        ctx.fillStyle = board[i][j] === 1 ? 'white' : board[i][j] === -1 ? 'black' : 'gray';
+                        ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            function updateBoard() {
+                let newBoard = board.map(row => [...row]);
+                let moves = [];
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        let neighbors = getNeighbors(i, j);
+                        let different = neighbors.filter(([x, y]) => board[x][y] !== board[i][j]).length;
+
+                        if (different >= 2) { // 检查周围至少有一半邻居颜色不同
+                            moves.push([i, j]);
+                        }
+                    }
+                }
+
+                shuffle(moves);
+
+                moves.forEach(([x, y], index) => {
+                    let [nextX, nextY] = moves[(index + 1) % moves.length];
+                    newBoard[nextX][nextY] = board[x][y];
+                });
+
+                board = newBoard;
+            }
+
+            function getNeighbors(x, y) {
+                let neighbors = [];
+                if (x > 0) neighbors.push([x - 1, y]); // 左
+                if (x < size - 1) neighbors.push([x + 1, y]); // 右
+                if (y > 0) neighbors.push([x, y - 1]); // 上
+                if (y < size - 1) neighbors.push([x, y + 1]); // 下
+                return neighbors;
+            }
+
+            function step() {
+                updateBoard();
+                drawBoard();
+            }
+
+            setInterval(step, 100); // Update every 100 ms
+        });
+    </script>
+</body>
+</html>
