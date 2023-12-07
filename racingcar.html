@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Racing Car Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+            background: #eee;
+        }
+        #speedControl {
+            display: block;
+            margin: 10px auto;
+            width: 300px;
+        }
+        .mainContent {
+            margin: auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="mainContent">
+        <p>Press space to start</p>
+        <label for="speedControl">Obstacle Speed:</label>
+        <input type="range" id="speedControl" min="1" max="20" value="2">
+    </div>
+    <canvas id="gameCanvas" width="500" height="600"></canvas>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const speedControl = document.getElementById('speedControl');
+
+            const laneWidth = 60;
+            const roadWidth = canvas.width;
+            const roadHeight = canvas.height;
+            const carWidth = 50;
+            const carHeight = 80;
+            const leftLaneCenter = roadWidth / 2 - laneWidth;
+            const rightLaneCenter = roadWidth / 2 + laneWidth;
+            let carX = leftLaneCenter - carWidth / 2;
+            const carY = roadHeight - carHeight - 10;
+            const obstacleWidth = 50;
+            const obstacleHeight = 80;
+            let obstacleX = Math.random() < 0.5 ? leftLaneCenter - obstacleWidth / 2 : rightLaneCenter - obstacleWidth / 2;
+            let obstacleY = -obstacleHeight;
+            let score = 0;
+            let gameOver = false;
+            let gameStarted = false;
+
+            document.addEventListener('keydown', (e) => {
+                if (gameStarted) {
+                    if (e.key === 'ArrowLeft') {
+                        carX = leftLaneCenter - carWidth / 2;
+                    }
+                    if (e.key === 'ArrowRight') {
+                        carX = rightLaneCenter - carWidth / 2;
+                    }
+                }
+
+                if (e.key === ' ' && !gameStarted) {
+                    gameStarted = true;
+                    requestAnimationFrame(gameLoop);
+                }
+            });
+
+            function drawBackground() {
+                // Draw grass areas
+                ctx.fillStyle = 'darkgreen';
+                ctx.fillRect(0, 0, roadWidth / 2 - laneWidth * 1.5, roadHeight);
+                ctx.fillRect(roadWidth / 2 + laneWidth * 1.5, 0, roadWidth / 2 - laneWidth * 1.5, roadHeight);
+
+                // Draw road
+                ctx.fillStyle = 'gray';
+                ctx.fillRect(roadWidth / 2 - laneWidth * 1.5, 0, laneWidth * 3, roadHeight);
+            }
+
+            function drawCar() {
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(carX, carY, carWidth, carHeight);
+            }
+
+            function drawObstacle() {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(obstacleX, obstacleY, obstacleWidth, obstacleHeight);
+            }
+
+            function updateObstacle() {
+                let speed = parseInt(speedControl.value);
+                obstacleY += speed;
+                if (obstacleY > roadHeight) {
+                    obstacleY = -obstacleHeight;
+                    obstacleX = Math.random() < 0.5 ? leftLaneCenter - obstacleWidth / 2 : rightLaneCenter - obstacleWidth / 2;
+                    score += 10; // Increase score for avoiding an obstacle
+                }
+            }
+
+            function checkCollision() {
+                if (carX < obstacleX + obstacleWidth &&
+                    carX + carWidth > obstacleX &&
+                    carY < obstacleY + obstacleHeight &&
+                    carY + carHeight > obstacleY) {
+                    gameOver = true;
+                }
+            }
+
+            function displayScore() {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText(`Score: ${score}`, 10, 20);
+            }
+
+            function gameLoop() {
+                if (!gameOver) {
+                    ctx.clearRect(0, 0, roadWidth, roadHeight);
+                    drawBackground();
+                    drawCar();
+                    drawObstacle();
+                    updateObstacle();
+                    checkCollision();
+                    displayScore();
+                    requestAnimationFrame(gameLoop);
+                } else {
+                    ctx.font = '30px Arial';
+                    ctx.fillText('Game Over!', 150, canvas.height / 2);
+                    ctx.fillText(`Final Score: ${score}`, 150, canvas.height / 2 + 40);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
