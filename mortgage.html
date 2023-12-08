@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mortgage Calculator with Charts</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input, button {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            width: 50%;
+        }
+        .chart {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Mortgage Calculator</h2>
+
+    <form id="mortgageForm">
+        Price (% of Mortgage Balance): <input type="number" id="price" step="0.01" required><br>
+        Mortgage Balance: <input type="number" id="balance" required><br>
+        Mortgage Rate (%): <input type="number" id="rate" step="0.01" required><br>
+        Mortgage Tenor (Months): <input type="number" id="tenor" required><br>
+        CDR (%): <input type="number" id="cdr" step="0.01" required><br>
+        CPR (%): <input type="number" id="cpr" step="0.01" required><br>
+        Severity (%): <input type="number" id="severity" step="0.01" required><br>
+        <button type="button" onclick="calculateMortgage()">Run</button>
+    </form>
+
+    <h3 id="irrResult">IRR: N/A</h3>
+
+    <div class="chart-container">
+        <canvas id="monthlyPaymentChart" class="chart"></canvas>
+        <canvas id="cumulativeNetLossChart" class="chart"></canvas>
+    </div>
+
+    <h3>Payment Schedule</h3>
+    <table id="scheduleTable">
+        <tr>
+            <th>Outstanding Balance</th>
+            <th>Interest Paid</th>
+            <th>Schedule Principal</th>
+            <th>Prepayment</th>
+            <th>Defaulted Balance</th>
+            <th>Recovery</th>
+            <th>Total Principal Collected</th>
+            <th>Total Cash Collected</th>
+        </tr>
+        <!-- Rows will be added here by JavaScript -->
+    </table>
+
+    <script>
+        function calculateMortgage() {
+            let balance = parseFloat(document.getElementById('balance').value);
+            let annualRate = parseFloat(document.getElementById('rate').value) / 100;
+            let tenor = parseInt(document.getElementById('tenor').value);
+            let cdr = parseFloat(document.getElementById('cdr').value) / 100;
+            let cpr = parseFloat(document.getElementById('cpr').value) / 100;
+            let severity = parseFloat(document.getElementById('severity').value) / 100;
+
+            let table = document.getElementById('scheduleTable');
+            table.innerHTML = `
+                <tr>
+                    <th>Outstanding Balance</th>
+                    <th>Interest Paid</th>
+                    <th>Schedule Principal</th>
+                    <th>Prepayment</th>
+                    <th>Defaulted Balance</th>
+                    <th>Recovery</th>
+                    <th>Total Principal Collected</th>
+                    <th>Total Cash Collected</th>
+                </tr>`;
+
+            let totalPrincipalCollected = 0;
+            let totalCashCollected = 0;
+            let interestPayments = [];
+            let principalPayments = [];
+            let cumulativeDefault = 0;
+            let cumulativeRecovery = 0;
+            let cumulativeNetLossRatios = [];
+
+            let pricePercentage = parseFloat(document.getElementById('price').value);
+            let initialInvestment = -pricePercentage * parseFloat(document.getElementById('balance').value) / 100;
+            let cashFlows = [initialInvestment];
+
+            for (let i = 0; i < tenor; i++) {
+                let monthlyRate = annualRate / 12;
+                let monthlyCPR = 1 - Math.pow(1 - cpr, 1 / 12);
+                let monthlyCDR = 1 - Math.pow(1 - cdr, 1 / 12);
+
+                let defaultAmount = balance * monthlyCDR;
+                balance -= defaultAmount;
+                let recoveryAmount = defaultAmount * severity;
+
+                let interestPayment = balance * monthlyRate;
+                let monthlyPayment = (monthlyRate * balance) / (1 - Math.pow(1 + monthlyRate, -tenor + i));
+                let scheduledPrincipal = monthlyPayment - interestPayment;
+                let prepayment = balance * monthlyCPR;
+
+                balance -= (scheduledPrincipal + prepayment);
+                totalPrincipalCollected = scheduledPrincipal + prepayment;
+                totalCashCollected = interestPayment + scheduledPrincipal + prepayment + recoveryAmount;
+
+                interestPayments.push(interestPayment);
+                principalPayments.push(scheduledPrincipal);
+                cumulativeDefault += defaultAmount;
+                cumulativeRecovery += recoveryAmount;
+                cumulativeNetLossRatios.push((cumulativeDefault - cumulativeRecovery) / parseFloat(document.getElementById('balance').value));
+
+                // Calculate cash flow for IRR
+                cashFlows.push(interestPayment + scheduledPrincipal + prepayment + recoveryAmount);
+
+                let row = table.insertRow();
+                row.insertCell(0).innerHTML = balance.toFixed(2);
+                row.insertCell(1).innerHTML = interestPayment.toFixed(2);
+                row.insertCell(2).innerHTML = scheduledPrincipal.toFixed(2);
+                row.insertCell(3).innerHTML = prepayment.toFixed(2);
+                row.insertCell(4).innerHTML = defaultAmount.toFixed(2);
+                row.insertCell(5).innerHTML = recoveryAmount.toFixed(2);
+                row.insertCell(6).innerHTML = totalPrincipalCollected.toFixed(2);
+                row.insertCell(7).innerHTML = totalCashCollected.toFixed(2);
+            }
+
+            renderMonthlyPaymentChart(interestPayments, principalPayments);
+            renderCumulativeNetLossChart(cumulativeNetLossRatios);
+
+            // Calculate and display IRR
+            let irrMonthly = calculateIRR(cashFlows, initialInvestment);
+            let irrAnnualized = Math.pow(1 + irrMonthly, 12) - 1;
+            document.getElementById('irrResult').textContent = `IRR: ${(irrAnnualized * 100).toFixed(2)}%`;
+
+        }
+
+        function calculateIRR(cashFlows, initialInvestment) {
+            let guess = 0.1; // Initial guess for IRR
+            let tol = 0.000001; // Tolerance
+            let maxIter = 1000; // Maximum iterations
+            let x0 = guess;
+            let x1 = 0.0;
+            let fx0, fx1, dfx0;
+
+            for (let i = 0; i < maxIter; i++) {
+                fx0 = initialInvestment;
+                dfx0 = 0;
+                for (let j = 1; j < cashFlows.length; j++) {
+                    fx0 += cashFlows[j] / Math.pow(1 + x0, j);
+                    dfx0 -= j * cashFlows[j] / Math.pow(1 + x0, j + 1);
+                }
+
+                x1 = x0 - fx0 / dfx0;
+                if (Math.abs(x1 - x0) < tol) {
+                    return x1;
+                }
+                x0 = x1;
+            }
+            return x0; // Return the IRR
+        }
+
+        function renderMonthlyPaymentChart(interestPayments, principalPayments) {
+            new Chart(document.getElementById('monthlyPaymentChart'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: interestPayments.length}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Interest Payment',
+                        data: interestPayments,
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255, 0, 0, 0.5)'
+                    }, {
+                        label: 'Principal Payment',
+                        data: principalPayments,
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0, 0, 255, 0.5)'
+                    }]
+                }
+            });
+        }
+
+        function renderCumulativeNetLossChart(cumulativeNetLossRatios) {
+            new Chart(document.getElementById('cumulativeNetLossChart'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: cumulativeNetLossRatios.length}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Cumulative Net Loss Ratio',
+                        data: cumulativeNetLossRatios,
+                        borderColor: 'green',
+                        backgroundColor: 'rgba(0, 255, 0, 0.5)'
+                    }]
+                }
+            });
+        }
+    </script>
+</body>
+</html>
