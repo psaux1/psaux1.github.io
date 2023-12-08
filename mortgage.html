@@ -112,7 +112,7 @@
 
                 let defaultAmount = balance * monthlyCDR;
                 balance -= defaultAmount;
-                let recoveryAmount = defaultAmount * severity;
+                let recoveryAmount = defaultAmount * (1 - severity);
 
                 let interestPayment = balance * monthlyRate;
                 let monthlyPayment = (monthlyRate * balance) / (1 - Math.pow(1 + monthlyRate, -tenor + i));
