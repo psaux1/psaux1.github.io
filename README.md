@@ -13,3 +13,4 @@ I am documenting a group of chatgpt toys here just for fun. All codes were writt
 4. [Matrix Rain](https://psaux1.github.io/matrix.html)
 5. [Thomas Schelling's Segregation Model](https://psaux1.github.io/tom.html), see wiki [here](https://en.wikipedia.org/wiki/Schelling%27s_model_of_segregation).
 6. [World's Simplest Racing Car Game](https://psaux1.github.io/racingcar.html)
+7. [The Mortgage Calcultor](https://psaux1.github.io/mortgage.html), that can do At LEAST something?
