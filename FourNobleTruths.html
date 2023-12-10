@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKUSHIN 2.0</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars on the whole page */
+            display: flex;
+            flex-direction: column;
+            font-family: 'Arial', sans-serif;
+            background-color: #000000; /* Vaporwave contrast color */
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: white;
+            font-family: 'Lucida Console', 'Courier New', monospace;
+            background-color: #ff77e9;
+        }
+        #content-wrapper {
+            flex-grow: 1;
+            position: relative; /* For z-index stacking */
+            overflow: hidden; /* Prevent scrollbars in the canvas container */
+            font-family: 'Lucida Console', 'Courier New', monospace;
+            color: white;
+            padding: 10%;
+        }
+        .weblink {
+            padding: 1%;
+        }
+        /* Grid background */
+        #content-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(0deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent);
+            background-size: 90px 90px;
+            z-index: 0; /* Ensure grid is below the canvas */
+        }
+    </style>
+</head>
+<body>
+    <div id="content-wrapper">
+        <h1>The Four Noble Truths of Buddhism</h1>
+        <p><strong>Suffering, Origin, Cessation, and Path</strong>, also known as the <em>'Four Noble Truths'</em> of Buddhism, were the first teachings imparted by Buddha under the Bodhi tree. These truths form the core of Buddhist doctrine.</p>
+
+        <h2>Dukkha (Suffering)</h2>
+        <p>This is the recognition of suffering in life. In Buddhism, suffering is not just about pain; it also encompasses dissatisfaction, instability, and imperfection. Birth, aging, sickness, death, separation from loved ones, encountering what one dislikes, and not achieving what one desires are all manifestations of suffering.</p>
+
+        <h2>Samudaya (Origin)</h2>
+        <p>This pertains to the understanding of the cause of suffering. Buddha taught that the root of suffering lies in greed, hatred, and delusion, which are desires, anger, and ignorance, respectively. These afflictions lead to human suffering.</p>
+
+        <h2>Nirodha (Cessation)</h2>
+        <p>This is the understanding of the cessation of suffering. Buddha pointed out that suffering can be ended by completely eliminating greed, hatred, and delusion, leading to Nirvana, the cessation of suffering.</p>
+
+        <h2>Magga (Path)</h2>
+        <p>This is the understanding of the path leading to the cessation of suffering. Buddha laid out the Eightfold Path, which includes Right View, Right Intention, Right Speech, Right Action, Right Livelihood, Right Effort, Right Mindfulness, and Right Concentration, as the method to end suffering.</p>
+
+        <p>The Four Noble Truths are not only a profound insight into the sufferings of life but also provide a path to liberation from these sufferings. It is a journey of introspection and practice, guiding all beings towards ultimate liberation and enlightenment.</p>
+    </div>
+    <footer>
+        <a class="weblink" href="https://psaux1.github.io/index.html">Home</a>
+        <a class="weblink" href="https://psaux1.github.io/Projects.html">Projects</a>
+        <a class="weblink" href="https://humorous-parka-43a.notion.site/Awesome-ChatGPT-Prompts-by-Myself-9fa2ce484a2c4f53b8b6ffa26abe3c26?pvs=4">Notion</a>
+        <a class="weblink" href="https://psaux1.github.io/FourNobleTruth.html">The Four Noble Truths</a>
+        <a class="weblink" href="https://psaux1.github.io/About.html">About</a>
+    </footer>
+</body>
+</html>

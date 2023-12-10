@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKUSHIN 2.0</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars on the whole page */
+            display: flex;
+            flex-direction: column;
+            font-family: 'Arial', sans-serif;
+            background-color: #000000; /* Vaporwave contrast color */
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: white;
+            font-family: 'Lucida Console', 'Courier New', monospace;
+            background-color: #ff77e9;
+        }
+        #content-wrapper {
+            flex-grow: 1;
+            position: relative; /* For z-index stacking */
+            overflow: hidden; /* Prevent scrollbars in the canvas container */
+            font-family: 'Lucida Console', 'Courier New', monospace;
+            color: white;
+            padding: 10%;
+        }
+        .weblink {
+            padding: 1%;
+        }
+        /* Grid background */
+        #content-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(0deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent);
+            background-size: 90px 90px;
+            z-index: 0; /* Ensure grid is below the canvas */
+        }
+    </style>
+</head>
+<body>
+    <div id="content-wrapper">
+        <h1>About</h1>
+        <h2>AI</h2>
+        <p>Coding is not my profession, but I enjoy designing little front end projects. With the help of AI, I am experimenting a new life style.</p>
+        <table>
+            <tr><p>Adopt AI to speed-code front end projects and publish online. See how much time it can save.</p></tr>
+            <tr><p>Adopt AI to design weekly body training plan and follow it</p></tr>
+            <tr><p>Adopt AI to act as Physics and Philosophy teachers. Read with AI on some hardest academic books.</p></tr>
+            <tr><p>and more...</p></tr>
+        </table>
+        <h2>Buddhism</h2>
+        <p>Buddhism is a type of Eastern Philosophy. It is one of the available lens for human beings to exam the world through it. No one needs to be a Buddhist to study it, but he/she needs to be intellectually curious to take the challenge.</p>
+        <br/>
+        <h2>禅诗一首</h2>
+        <h4>鸟鸣涧 by 王维</h4>
+        <p>人闲桂花落，夜静春山空。</p>
+        <p>月出惊山鸟，时鸣春涧中。</p>
+    </div>
+    <footer>
+        <a class="weblink" href="https://psaux1.github.io/index.html">Home</a>
+        <a class="weblink" href="https://psaux1.github.io/Projects.html">Projects</a>
+        <a class="weblink" href="https://humorous-parka-43a.notion.site/Awesome-ChatGPT-Prompts-by-Myself-9fa2ce484a2c4f53b8b6ffa26abe3c26?pvs=4">Notion</a>
+        <a class="weblink" href="https://psaux1.github.io/FourNobleTruth.html">The Four Noble Truths</a>
+        <a class="weblink" href="https://psaux1.github.io/About.html">About</a>
+    </footer>
+</body>
+</html>

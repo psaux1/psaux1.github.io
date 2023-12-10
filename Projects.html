@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKUSHIN 2.0</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars on the whole page */
+            display: flex;
+            flex-direction: column;
+            font-family: 'Arial', sans-serif;
+            background-color: #000000; /* Vaporwave contrast color */
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: white;
+            font-family: 'Lucida Console', 'Courier New', monospace;
+            background-color: #ff77e9;
+        }
+        #content-wrapper {
+            flex-grow: 1;
+            position: relative; /* For z-index stacking */
+            overflow: hidden; /* Prevent scrollbars in the canvas container */
+            font-family: 'Lucida Console', 'Courier New', monospace;
+            color: white;
+            padding: 10%;
+        }
+        .weblink {
+            padding: 1%;
+        }
+        .custom-link {
+            color: white;
+        }
+        /* Grid background */
+        #content-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(0deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent);
+            background-size: 90px 90px;
+            z-index: 0; /* Ensure grid is below the canvas */
+        }
+        td {
+            padding-left: 3%;
+            padding-bottom: 1%;
+        }
+        table {
+            z-index: 1;
+            position: relative;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div id="content-wrapper">
+        <!--
+        1. [Cube](https://psaux1.github.io/cube.html)
+        2. [Solar System](https://psaux1.github.io/solar.html)
+        3. [Snake Game](https://psaux1.github.io/snake.html)
+        4. [Matrix Rain](https://psaux1.github.io/matrix.html)
+        5. [Thomas Schelling's Segregation Model](https://psaux1.github.io/tom.html), see wiki [here](https://en.wikipedia.org/wiki/Schelling%27s_model_of_segregation).
+        6. [World's Simplest Racing Car Game](https://psaux1.github.io/racingcar.html)
+        7. [The Mortgage Calculator](https://psaux1.github.io/mortgage.html), that can do At LEAST something?
+        -->
+        <h1>Projects</h1>
+        <table>
+            <tr>
+                <td><a href="https://psaux1.github.io/cube.html" class="custom-link">Cube</a></td>
+                <td>The basic of basics</td>
+            </tr>
+            <tr>
+                <td><a href="https://psaux1.github.io/solar.html" class="custom-link">Solar System</a></td>
+                <td>A solar system based on real world size data</td>
+            </tr>
+            <tr>
+                <td><a href="https://psaux1.github.io/snake.html" class="custom-link">Snake Game</a></td>
+                <td>The classic snake game that everyone played on a Nokia phone</td>
+            </tr>
+            <tr>
+                <td><a href="https://psaux1.github.io/matrix.html" class="custom-link">Matrix Rain</a></td>
+                <td>If you ever watched The Matrix</td>
+            </tr>
+            <tr>
+                <td><a href="https://psaux1.github.io/tom.html" class="custom-link">Segregation Model</a></td>
+                <td>The classic agent based model for a economic phenomenon by Thomas Schelling</td>
+            </tr>
+            <tr>
+                <td><a href="https://psaux1.github.io/racingcar.html" class="custom-link">Racing Car</a></td>
+                <td>The world's Simplest racing car game/td>
+            </tr>
+            <tr>
+                <td><a href="https://psaux1.github.io/mortgage.html" class="custom-link">Mortgage Cash Flow</a></td>
+                <td>The starting point of mortgage modeling</td>
+            </tr>
+        </table>
+    </div>
+    <footer>
+        <a class="weblink" href="https://psaux1.github.io/index.html">Home</a>
+        <a class="weblink" href="https://psaux1.github.io/Projects.html">Projects</a>
+        <a class="weblink" href="https://humorous-parka-43a.notion.site/Awesome-ChatGPT-Prompts-by-Myself-9fa2ce484a2c4f53b8b6ffa26abe3c26?pvs=4">Notion</a>
+        <a class="weblink" href="https://psaux1.github.io/FourNobleTruth.html">The Four Noble Truths</a>
+        <a class="weblink" href="https://psaux1.github.io/About.html">About</a>
+    </footer>
+</body>
+</html>
