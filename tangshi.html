@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Tangshi</title>
+    <style>
+        body {
+            font-family: 'STKaiti', 'Kaiti SC', serif; /* This will give a calligraphy-like appearance */
+        }
+        #tangshi-container {
+            white-space: pre-line; /* Ensures line breaks in the poem are respected */
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button id="fetch-tangshi">Click me for a random Tangshi</button>
+    <div>
+        <p>
+         If you see "failed to load data", wait for a few seconds and click again.
+        </p>
+        <p>
+            Thanks for the support from CORS-anywhere. This is a development only project.
+        </p>
+    </div>
+    <div id="tangshi-container"></div>
+    <!-- Include Axios from a CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('fetch-tangshi').addEventListener('click', function() {
+            // Using Axios to make the request
+            axios.get('https://cors-anywhere.herokuapp.com/http://gxy.me/tangshi?format=json')
+                .then(response => {
+                    displayTangshi(response.data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data: ', error);
+                    document.getElementById('tangshi-container').innerText = 'Failed to load data.';
+                });
+        });
+
+        function displayTangshi(data) {
+            const container = document.getElementById('tangshi-container');
+            container.innerHTML = `
+                <h2>${data.title}</h2>
+                <h4> ${data.author}</h4>
+                <p>${data.lines.join('\n')}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
