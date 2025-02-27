@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKUSHIN 2.0</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars on the whole page */
+            display: flex;
+            flex-direction: column;
+            font-family: 'Arial', sans-serif;
+            background-color: #ff77e9; /* Vaporwave contrast color */
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: white;
+            font-family: 'Lucida Console', 'Courier New', monospace;
+        }
+        #canvas-wrapper {
+            flex-grow: 1;
+            position: relative; /* For z-index stacking */
+            overflow: hidden; /* Prevent scrollbars in the canvas container */
+        }
+        .weblink {
+            padding: 1%;
+        }
+        /* Grid background */
+        #canvas-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(0deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent);
+            background-size: 90px 90px;
+            z-index: 0; /* Ensure grid is below the canvas */
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-wrapper">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script>
+            let scene, camera, renderer, dodecahedron;
+
+            function init() {
+                // Scene setup
+                scene = new THREE.Scene();
+
+                // Camera setup
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 3.5;
+
+                // Renderer setup
+                renderer = new THREE.WebGLRenderer();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                //document.body.appendChild(renderer.domElement);
+
+                // Custom Shader Material for Dodecahedron
+                const vertexShader = `
+                        varying vec3 vUv;
+                        void main() {
+                            vUv = position;
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        }
+                    `;
+                const fragmentShader = `
+                        uniform vec3 color1;
+                        uniform vec3 color2;
+                        varying vec3 vUv;
+                        void main() {
+                            float mixFactor = dot(normalize(vUv), vec3(0.0, 1.0, 0.0));
+                            gl_FragColor = vec4(mix(color1, color2, mixFactor), 1.0);
+                        }
+                    `;
+                const uniforms = {
+                    color1: { value: new THREE.Color(0x654ea3) }, // Vaporwave color 1
+                    color2: { value: new THREE.Color(0xeaafc8) }  // Vaporwave color 2
+                };
+
+                const material = new THREE.ShaderMaterial({
+                    uniforms: uniforms,
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader
+                });
+
+                // Dodecahedron setup
+                const geometry = new THREE.DodecahedronGeometry(1, 0);
+                dodecahedron = new THREE.Mesh(geometry, material);
+                scene.add(dodecahedron);
+
+                // Light setup
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(1, 1, 1);
+                scene.add(directionalLight);
+
+                // Wireframe
+                const wireframeMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff, // Color of the wireframe
+                    wireframe: true
+                });
+                wireframe = new THREE.Mesh(geometry, wireframeMaterial);
+                scene.add(wireframe);
+
+                // Responsive design adjustments
+                window.addEventListener('resize', onWindowResize, false);
+
+                // Start animation
+                animate();
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Rotation
+                dodecahedron.rotation.x += 0.01;
+                dodecahedron.rotation.y += 0.01;  
+                wireframe.rotation.x += 0.01;
+                wireframe.rotation.y += 0.01;
+
+                renderer.render(scene, camera);
+            }
+
+            init();
+
+            document.getElementById('canvas-wrapper').appendChild(renderer.domElement);
+        </script>
+    </div>
+    <footer>
+        <a class="weblink" href="https://psaux1.github.io/index.html">Home</a>
+        <a class="weblink" href="https://psaux1.github.io/Projects.html">Projects</a>
+        <a class="weblink" href="https://humorous-parka-43a.notion.site/Awesome-ChatGPT-Prompts-by-Myself-9fa2ce484a2c4f53b8b6ffa26abe3c26?pvs=4">Notion</a>
+        <a class="weblink" href="https://psaux1.github.io/FourNobleTruths.html">The Four Noble Truths</a>
+        <a class="weblink" href="https://psaux1.github.io/About.html">About</a>
+        <a class="weblink" href="https://humorous-parka-43a.notion.site/Seeking-No-Profound-Understanding-86016b9cb7964191911198dcb643feca?pvs=4">Books</a>
+    </footer>
+</body>
+</html>

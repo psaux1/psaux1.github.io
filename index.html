@@ -3,152 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IKUSHIN 2.0</title>
+    <title>Hello World</title>
     <style>
-        html, body {
-            height: 100%;
+        body {
+            font-family: 'Times New Roman', serif;
+            background-color: #f9f6f0;
+            color: #333;
+            line-height: 1.6;
             margin: 0;
-            overflow: hidden; /* Prevent scrollbars on the whole page */
+            padding: 0;
             display: flex;
             flex-direction: column;
-            font-family: 'Arial', sans-serif;
-            background-color: #ff77e9; /* Vaporwave contrast color */
+            min-height: 100vh;
         }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .name {
+            font-size: 48px;
+            font-weight: normal;
+            margin: 0;
+            letter-spacing: 6px;
+            color: #222;
+        }
+
+        .email {
+            font-style: italic;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #666;
+            letter-spacing: 1px;
+        }
+
+        .painting-container {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .about {
+            font-size: 18px;
+            line-height: 1.8;
+            margin: 40px 0;
+            text-align: center;
+            max-width: 700px;
+            align-self: center;
+        }
+
         footer {
             text-align: center;
-            padding: 10px;
-            color: white;
-            font-family: 'Lucida Console', 'Courier New', monospace;
+            margin-top: auto;
+            padding: 20px;
+            font-size: 14px;
+            color: #888;
         }
-        #canvas-wrapper {
-            flex-grow: 1;
-            position: relative; /* For z-index stacking */
-            overflow: hidden; /* Prevent scrollbars in the canvas container */
+        
+        .stamp {
+            width: 80px;
+            height: 80px;
+            font-family: 'Times New Roman', serif;
+            color: #c53030;
+            font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 30px auto 0;
         }
-        .weblink {
-            padding: 1%;
-        }
-        /* Grid background */
-        #canvas-wrapper::before {
-            content: '';
+        
+        .stamp::after {
+            content: "";
             position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #c53030;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                linear-gradient(0deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent),
-                linear-gradient(90deg, transparent 24%, rgba(92, 236, 255, 0.3) 25%, rgba(92, 236, 255, 0.3) 26%, transparent 27%, transparent);
-            background-size: 90px 90px;
-            z-index: 0; /* Ensure grid is below the canvas */
+        }
+        
+        @keyframes cloudDrift1 {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(800px); }
+        }
+        
+        @keyframes cloudDrift2 {
+            0% { transform: translateX(-200px); }
+            100% { transform: translateX(800px); }
+        }
+        
+        .cloud1 {
+            animation: cloudDrift1 60s linear infinite;
+        }
+        
+        .cloud2 {
+            animation: cloudDrift2 80s linear infinite;
         }
     </style>
 </head>
 <body>
-    <div id="canvas-wrapper">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-        <script>
-            let scene, camera, renderer, dodecahedron;
+    <div class="container">
+        <header>
+            <h1 class="name">YUCHEN SU</h1>
+            <div class="email">yuchen_su@outlook.com</div>
+        </header>
 
-            function init() {
-                // Scene setup
-                scene = new THREE.Scene();
+        <div class="painting-container">
+            <svg width="700" height="400" viewBox="0 0 700 400">
+                <!-- Cloud 1 -->
+                <g class="cloud1">
+                    <path d="M30,180 Q45,160 70,170 Q90,155 110,165 Q125,155 140,165 Q160,150 180,165 Q200,155 210,170 Q180,190 150,185 Q120,195 90,185 Q60,195 30,180 Z" 
+                          fill="#f5f5f5" stroke="none" opacity="0.9" />
+                </g>
+                
+                <!-- Cloud 2 -->
+                <g class="cloud2">
+                    <path d="M100,220 Q115,200 140,210 Q160,195 180,205 Q195,195 210,205 Q230,190 250,205 Q270,195 280,210 Q250,230 220,225 Q190,235 160,225 Q130,235 100,220 Z" 
+                          fill="#f0f0f0" stroke="none" opacity="0.85" />
+                </g>
+                
+                <!-- Mountain background -->
+                <path d="M0,300 Q100,250 200,280 Q300,310 400,250 Q500,190 600,240 Q650,265 700,290 L700,400 L0,400 Z" 
+                      fill="#e6e6e6" stroke="none" />
+                
+                <!-- Far mountains -->
+                <path d="M50,320 Q150,260 250,300 Q350,340 450,270 Q550,200 650,260 L650,400 L50,400 Z" 
+                      fill="#d4d4d4" stroke="none" />
+                
+                <!-- Closer mountains with ink wash effect -->
+                <path d="M0,350 Q100,300 180,330 Q280,360 370,320 Q450,280 550,310 Q650,340 700,330 L700,400 L0,400 Z" 
+                      fill="#c0c0c0" stroke="none" />
+                
+                <!-- Water -->
+                <path d="M0,380 Q100,370 200,375 Q300,380 400,370 Q500,360 600,375 Q650,380 700,375 L700,400 L0,400 Z" 
+                      fill="#e0e0e0" stroke="none" />
+                
+                <!-- Bamboo group 1 -->
+                <g transform="translate(120, 250) scale(0.8)">
+                    <!-- Bamboo stems -->
+                    <path d="M10,150 C12,100 8,50 10,0" stroke="#333" stroke-width="4" fill="none" />
+                    <path d="M30,140 C32,90 28,40 30,-10" stroke="#333" stroke-width="3" fill="none" />
+                    <path d="M50,170 C52,120 48,70 50,20" stroke="#333" stroke-width="3.5" fill="none" />
+                    
+                    <!-- Bamboo nodes -->
+                    <line x1="8" y1="30" x2="12" y2="30" stroke="#333" stroke-width="4" />
+                    <line x1="8" y1="70" x2="12" y2="70" stroke="#333" stroke-width="4" />
+                    <line x1="8" y1="110" x2="12" y2="110" stroke="#333" stroke-width="4" />
+                    
+                    <line x1="28" y1="20" x2="32" y2="20" stroke="#333" stroke-width="3" />
+                    <line x1="28" y1="60" x2="32" y2="60" stroke="#333" stroke-width="3" />
+                    <line x1="28" y1="100" x2="32" y2="100" stroke="#333" stroke-width="3" />
+                    
+                    <line x1="48" y1="40" x2="52" y2="40" stroke="#333" stroke-width="3.5" />
+                    <line x1="48" y1="80" x2="52" y2="80" stroke="#333" stroke-width="3.5" />
+                    <line x1="48" y1="120" x2="52" y2="120" stroke="#333" stroke-width="3.5" />
+                    
+                    <!-- Bamboo leaves -->
+                    <path d="M12,30 C30,20 40,30 45,15" stroke="#333" stroke-width="1.5" fill="none" />
+                    <path d="M12,30 C25,35 35,30 40,40" stroke="#333" stroke-width="1.5" fill="none" />
+                    
+                    <path d="M32,60 C50,50 60,60 65,45" stroke="#333" stroke-width="1.5" fill="none" />
+                    <path d="M32,60 C45,65 55,60 60,70" stroke="#333" stroke-width="1.5" fill="none" />
+                    
+                    <path d="M52,80 C70,70 80,80 85,65" stroke="#333" stroke-width="1.5" fill="none" />
+                    <path d="M52,80 C65,85 75,80 80,90" stroke="#333" stroke-width="1.5" fill="none" />
+                </g>
+                
+                <!-- Bamboo group 2 -->
+                <g transform="translate(500, 230) scale(0.7)">
+                    <!-- Bamboo stems -->
+                    <path d="M10,150 C12,100 8,50 10,0" stroke="#333" stroke-width="4" fill="none" />
+                    <path d="M30,160 C32,110 28,60 30,10" stroke="#333" stroke-width="3" fill="none" />
+                    
+                    <!-- Bamboo nodes -->
+                    <line x1="8" y1="30" x2="12" y2="30" stroke="#333" stroke-width="4" />
+                    <line x1="8" y1="70" x2="12" y2="70" stroke="#333" stroke-width="4" />
+                    <line x1="8" y1="110" x2="12" y2="110" stroke="#333" stroke-width="4" />
+                    
+                    <line x1="28" y1="40" x2="32" y2="40" stroke="#333" stroke-width="3" />
+                    <line x1="28" y1="80" x2="32" y2="80" stroke="#333" stroke-width="3" />
+                    <line x1="28" y1="120" x2="32" y2="120" stroke="#333" stroke-width="3" />
+                    
+                    <!-- Bamboo leaves -->
+                    <path d="M12,30 C30,20 40,30 45,15" stroke="#333" stroke-width="1.5" fill="none" />
+                    <path d="M12,30 C25,35 35,30 40,40" stroke="#333" stroke-width="1.5" fill="none" />
+                    
+                    <path d="M32,80 C50,70 60,80 65,65" stroke="#333" stroke-width="1.5" fill="none" />
+                    <path d="M32,80 C45,85 55,80 60,90" stroke="#333" stroke-width="1.5" fill="none" />
+                </g>
+            </svg>
+        </div>
 
-                // Camera setup
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.z = 3.5;
-
-                // Renderer setup
-                renderer = new THREE.WebGLRenderer();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                //document.body.appendChild(renderer.domElement);
-
-                // Custom Shader Material for Dodecahedron
-                const vertexShader = `
-                        varying vec3 vUv;
-                        void main() {
-                            vUv = position;
-                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                        }
-                    `;
-                const fragmentShader = `
-                        uniform vec3 color1;
-                        uniform vec3 color2;
-                        varying vec3 vUv;
-                        void main() {
-                            float mixFactor = dot(normalize(vUv), vec3(0.0, 1.0, 0.0));
-                            gl_FragColor = vec4(mix(color1, color2, mixFactor), 1.0);
-                        }
-                    `;
-                const uniforms = {
-                    color1: { value: new THREE.Color(0x654ea3) }, // Vaporwave color 1
-                    color2: { value: new THREE.Color(0xeaafc8) }  // Vaporwave color 2
-                };
-
-                const material = new THREE.ShaderMaterial({
-                    uniforms: uniforms,
-                    vertexShader: vertexShader,
-                    fragmentShader: fragmentShader
-                });
-
-                // Dodecahedron setup
-                const geometry = new THREE.DodecahedronGeometry(1, 0);
-                dodecahedron = new THREE.Mesh(geometry, material);
-                scene.add(dodecahedron);
-
-                // Light setup
-                const ambientLight = new THREE.AmbientLight(0x404040);
-                scene.add(ambientLight);
-
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-                directionalLight.position.set(1, 1, 1);
-                scene.add(directionalLight);
-
-                // Wireframe
-                const wireframeMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffffff, // Color of the wireframe
-                    wireframe: true
-                });
-                wireframe = new THREE.Mesh(geometry, wireframeMaterial);
-                scene.add(wireframe);
-
-                // Responsive design adjustments
-                window.addEventListener('resize', onWindowResize, false);
-
-                // Start animation
-                animate();
-            }
-
-            function onWindowResize() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-
-                // Rotation
-                dodecahedron.rotation.x += 0.01;
-                dodecahedron.rotation.y += 0.01;  
-                wireframe.rotation.x += 0.01;
-                wireframe.rotation.y += 0.01;
-
-                renderer.render(scene, camera);
-            }
-
-            init();
-
-            document.getElementById('canvas-wrapper').appendChild(renderer.domElement);
-        </script>
+        <div class="about">
+            <p>Welcome to my personal space. This minimalist design reflects the philosophy that inspires my approach to life and work.</p>
+            
+            <p>Like the bamboo that bends but doesn't break, I strive for resilience and adaptability in all my endeavors.</p>
+        </div>
+        
+        <div class="stamp">
+            蘇昱辰
+        </div>
     </div>
+
     <footer>
-        <a class="weblink" href="https://psaux1.github.io/index.html">Home</a>
-        <a class="weblink" href="https://psaux1.github.io/Projects.html">Projects</a>
-        <a class="weblink" href="https://humorous-parka-43a.notion.site/Awesome-ChatGPT-Prompts-by-Myself-9fa2ce484a2c4f53b8b6ffa26abe3c26?pvs=4">Notion</a>
-        <a class="weblink" href="https://psaux1.github.io/FourNobleTruths.html">The Four Noble Truths</a>
-        <a class="weblink" href="https://psaux1.github.io/About.html">About</a>
-        <a class="weblink" href="https://humorous-parka-43a.notion.site/Seeking-No-Profound-Understanding-86016b9cb7964191911198dcb643feca?pvs=4">Books</a>
+        © <script>document.write(new Date().getFullYear())</script> Yuchen Su, Page 100% done by Claude
     </footer>
 </body>
 </html>
