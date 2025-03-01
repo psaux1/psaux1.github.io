@@ -30,6 +30,29 @@
             text-align: center;
             margin-bottom: 60px;
         }
+        
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        nav a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 16px;
+            letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #333;
+        }
+        
+        nav a.active {
+            color: #333;
+            border-bottom: 1px solid #333;
+        }
 
         .name {
             font-size: 48px;
@@ -110,10 +133,67 @@
         .cloud2 {
             animation: cloudDrift2 80s linear infinite;
         }
+        
+        /* Responsive styles for smaller screens */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .name {
+                font-size: 36px;
+                letter-spacing: 4px;
+            }
+            
+            .email {
+                font-size: 14px;
+            }
+            
+            .about {
+                font-size: 16px;
+                padding: 0 10px;
+            }
+            
+            .painting-container svg {
+                width: 100%;
+                height: auto;
+            }
+            
+            header {
+                margin-bottom: 30px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .name {
+                font-size: 28px;
+                letter-spacing: 2px;
+            }
+            
+            nav a {
+                margin: 0 10px;
+                font-size: 14px;
+            }
+            
+            .about {
+                font-size: 15px;
+            }
+            
+            .stamp {
+                width: 60px;
+                height: 60px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <nav>
+            <a href="https://psaux1.github.io/index.html" class="active">Home</a>
+            <a href="https://psaux1.github.io/about_me.html">About</a>
+        </nav>
+        
         <header>
             <h1 class="name">YUCHEN SU</h1>
             <div class="email">y.su@tuta.io</div>
@@ -206,18 +286,19 @@
         </div>
 
         <div class="about">
-            <p>Welcome. This minimalist design reflects the Buddhist philosophy that inspires me.</p>
+            <p>Welcome to my personal space. This minimalist design reflects the Buddhist philosophy that inspires my approach to life.</p>
             
-            <p>ཨོཾ་ མ་ ཎི་ པ དྨེ་ ཧཱུྃ</p>
+            <p>Like the bamboo that bends but doesn't break, I strive for resilience and adaptability in all my endeavors.</p>
+            <p>ཨོཾ་ མ་ ཎི ་པ དྨེ་ ཧཱུྃ</p>
         </div>
         
         <div class="stamp">
-            蘇昱辰
+            蘇禹辰
         </div>
     </div>
 
     <footer>
-        © <script>document.write(new Date().getFullYear())</script> Yuchen Su, Page 100% done by Claude
+        © <script>document.write(new Date().getFullYear())</script> Yuchen Su
     </footer>
 </body>
 </html>
