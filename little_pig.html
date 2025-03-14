@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Little Pig Crossing the Road</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #start-screen {
+            background-color: #ffebee;
+            z-index: 3;
+        }
+        
+        #game-screen {
+            background-color: #e0f7fa;
+            z-index: 2;
+            display: none;
+            justify-content: flex-start;
+        }
+        
+        #end-screen {
+            background-color: #e8f5e9;
+            z-index: 1;
+            display: none;
+        }
+        
+        h1 {
+            color: #ff4081;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #f50057;
+        }
+        
+        #difficulty-selector {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #difficulty-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 300px;
+            margin-top: 10px;
+        }
+        
+        .difficulty-btn {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        #game-board {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #616161;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            border-top: 2px dashed white;
+            border-bottom: 2px dashed white;
+        }
+        
+        .car {
+            position: absolute;
+            height: 30px;
+            background-color: #2196f3;
+            border-radius: 6px;
+        }
+        
+        .car:after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            width: 8px;
+            height: 20px;
+            background-color: #bbdefb;
+            border-radius: 2px;
+        }
+        
+        .car-right:after {
+            right: 5px;
+        }
+        
+        .car-left:after {
+            left: 5px;
+        }
+        
+        #pig {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #ffb6c1;
+            border-radius: 50%;
+            z-index: 10;
+            transition: top 0.2s ease;
+        }
+        
+        #pig:before, #pig:after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffb6c1;
+            border-radius: 50%;
+            top: -5px;
+        }
+        
+        #pig:before {
+            left: 5px;
+        }
+        
+        #pig:after {
+            right: 5px;
+        }
+        
+        .nose {
+            position: absolute;
+            width: 12px;
+            height: 8px;
+            background-color: #ff8aab;
+            border-radius: 50%;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .nostril {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: #e91e63;
+            border-radius: 50%;
+            top: 2px;
+        }
+        
+        .nostril.left {
+            left: 2px;
+        }
+        
+        .nostril.right {
+            right: 2px;
+        }
+        
+        .eye {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: black;
+            border-radius: 50%;
+            top: 8px;
+        }
+        
+        .eye.left {
+            left: 7px;
+        }
+        
+        .eye.right {
+            right: 7px;
+        }
+        
+        #stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            background-color: #f8bbd0;
+            color: #880e4f;
+            font-weight: bold;
+        }
+        
+        #mobile-controls {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        #move-btn {
+            width: 100%;
+            height: 60px;
+            margin: 0;
+            font-size: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 24px;
+            }
+            
+            #game-board {
+                height: 350px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #game-board {
+                height: 300px;
+            }
+            
+            .lane {
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <h1>Little Pig Crossing the Road</h1>
+            <p>Help the pig cross the road safely! Press the space key or click the button to move the pig one step forward. Be careful not to get hit by cars!</p>
+            
+            <div id="difficulty-selector">
+                <p>Select difficulty (1-10):</p>
+                <div id="difficulty-buttons">
+                    <button class="difficulty-btn" data-level="1">1</button>
+                    <button class="difficulty-btn" data-level="2">2</button>
+                    <button class="difficulty-btn" data-level="3">3</button>
+                    <button class="difficulty-btn" data-level="4">4</button>
+                    <button class="difficulty-btn" data-level="5">5</button>
+                    <button class="difficulty-btn" data-level="6">6</button>
+                    <button class="difficulty-btn" data-level="7">7</button>
+                    <button class="difficulty-btn" data-level="8">8</button>
+                    <button class="difficulty-btn" data-level="9">9</button>
+                    <button class="difficulty-btn" data-level="10">10</button>
+                </div>
+                <p id="diff-description" style="margin-top:5px;font-weight:bold;color:#9c27b0;">Easy</p>
+            </div>
+            
+            <p id="instructions">Press space key to move on desktop, tap the button to move on mobile</p>
+            <button id="start-btn">Start Game</button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="stats">
+                <div id="timer">Time: 0.0s</div>
+                <div id="difficulty-display">Difficulty: 1</div>
+            </div>
+            
+            <div id="game-board"></div>
+            
+            <div id="mobile-controls">
+                <button id="move-btn">Move</button>
+            </div>
+        </div>
+        
+        <!-- End Screen -->
+        <div id="end-screen" class="screen">
+            <h1 id="result-title">Game Over</h1>
+            <p id="result-message">The pig got hit!</p>
+            <p id="time-result">Time: 0.0s</p>
+            <button id="replay-btn">Play Again</button>
+        </div>
+    </div>
+    
+    <script>
+        // Game state
+        let gameState = {
+            difficulty: 1,
+            isPlaying: false,
+            isGameOver: false,
+            startTime: 0,
+            elapsedTime: 0,
+            timerInterval: null,
+            pigPosition: 0,
+            totalLanes: 10,
+            cars: [],
+            animationFrames: []
+        };
+        
+        // Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const gameBoard = document.getElementById('game-board');
+        const timer = document.getElementById('timer');
+        const difficultyDisplay = document.getElementById('difficulty-display');
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        const timeResult = document.getElementById('time-result');
+        
+        // Set up difficulty selection with descriptions
+        const difficultyLabels = [
+            "Easy", "Casual", "Moderate", "Challenging", "Hard", 
+            "Very Hard", "Expert", "Extreme", "Insane", "Impossible"
+        ];
+        
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        difficultyButtons.forEach((btn, index) => {
+            const level = parseInt(btn.getAttribute('data-level'));
+            btn.addEventListener('click', function() {
+                difficultyButtons.forEach(b => b.style.backgroundColor = '#ff4081');
+                this.style.backgroundColor = '#9c27b0';
+                gameState.difficulty = level;
+                
+                // Show description of selected difficulty
+                const diffDescription = document.getElementById('diff-description');
+                if (diffDescription) {
+                    diffDescription.textContent = difficultyLabels[level - 1];
+                }
+            });
+            
+            // Add tooltip on hover
+            btn.title = difficultyLabels[level - 1];
+        });
+        
+        // Set default difficulty
+        difficultyButtons[0].style.backgroundColor = '#9c27b0';
+        
+        // Add event listeners
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('replay-btn').addEventListener('click', function() {
+            // Show the start screen instead of immediately restarting
+            startScreen.style.display = 'flex';
+            endScreen.style.display = 'none';
+        });
+        document.getElementById('move-btn').addEventListener('click', movePig);
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                movePig();
+            }
+        });
+        
+        // Initialize game board
+        function initGameBoard() {
+            // Clear game board
+            gameBoard.innerHTML = '';
+            
+            const laneHeight = window.innerWidth <= 480 ? 30 : 40;
+            const pigSize = 30;
+            
+            // Create lanes
+            for (let i = 0; i < gameState.totalLanes; i++) {
+                const lane = document.createElement('div');
+                lane.classList.add('lane');
+                lane.style.top = (i * laneHeight) + 'px';
+                lane.style.height = laneHeight + 'px';
+                gameBoard.appendChild(lane);
+            }
+            
+            // Create pig
+            const pig = document.createElement('div');
+            pig.id = 'pig';
+            pig.innerHTML = `
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+                <div class="nose">
+                    <div class="nostril left"></div>
+                    <div class="nostril right"></div>
+                </div>
+            `;
+            
+            // Position pig at the bottom
+            gameState.pigPosition = gameState.totalLanes - 1;
+            pig.style.width = pigSize + 'px';
+            pig.style.height = pigSize + 'px';
+            pig.style.left = (gameBoard.clientWidth / 2 - pigSize / 2) + 'px';
+            pig.style.top = (gameState.pigPosition * laneHeight + (laneHeight - pigSize) / 2) + 'px';
+            
+            gameBoard.appendChild(pig);
+        }
+        
+        // Generate cars
+        function generateCars() {
+            // Clear existing cars and animations
+            gameState.cars.forEach(car => car.remove());
+            gameState.cars = [];
+            gameState.animationFrames.forEach(id => cancelAnimationFrame(id));
+            gameState.animationFrames = [];
+            
+            const laneHeight = window.innerWidth <= 480 ? 30 : 40;
+            
+            // Calculate car density and speed based on difficulty
+            const baseDensity = 0.3;
+            const baseSpeed = 0.8;
+            
+            // Exponential difficulty scaling - roughly doubles each level
+            // Store these values in gameState so they can be accessed elsewhere
+            gameState.carDensity = Math.min(baseDensity + (0.06 * Math.pow(1.5, gameState.difficulty)), 0.95);
+            gameState.minSpeed = baseSpeed * Math.pow(1.35, gameState.difficulty);
+            gameState.maxSpeed = gameState.minSpeed * 1.5;
+            
+            const density = gameState.carDensity;
+            const minSpeed = gameState.minSpeed;
+            const maxSpeed = gameState.maxSpeed;
+            
+            // Generate cars for each lane except the start and finish lanes
+            for (let i = 1; i < gameState.totalLanes - 1; i++) {
+                // Skip some lanes based on density
+                if (Math.random() > density) continue;
+                
+                // Determine direction (odd lanes go right, even lanes go left)
+                const goingRight = i % 2 === 0;
+                
+                // Calculate car properties
+                const minLength = 50;
+                const maxLength = 120;
+                const carLength = minLength + Math.random() * (maxLength - minLength);
+                const carSpeed = minSpeed + Math.random() * (maxSpeed - minSpeed);
+                
+                // Create car element
+                const car = document.createElement('div');
+                car.classList.add('car');
+                car.classList.add(goingRight ? 'car-right' : 'car-left');
+                car.style.width = carLength + 'px';
+                car.style.height = (laneHeight - 10) + 'px';
+                car.style.top = (i * laneHeight + 5) + 'px';
+                
+                // Assign random color to car
+                const colors = ['#f44336', '#2196f3', '#4caf50', '#ff9800', '#9c27b0', '#607d8b'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                car.style.backgroundColor = randomColor;
+                
+                // Position car initially
+                if (goingRight) {
+                    car.style.left = '-' + carLength + 'px';
+                } else {
+                    car.style.left = gameBoard.clientWidth + 'px';
+                }
+                
+                gameBoard.appendChild(car);
+                gameState.cars.push(car);
+                
+                // Start animating the car
+                animateCar(car, goingRight, carSpeed, i);
+            }
+        }
+        
+        // Animate a car
+        function animateCar(car, goingRight, speed, laneIndex) {
+            let position = goingRight ? -car.offsetWidth : gameBoard.clientWidth;
+            const carWidth = car.offsetWidth;
+            const pigSize = 30;
+            
+            function animate() {
+                if (gameState.isGameOver) return;
+                
+                // Move car
+                position += goingRight ? speed : -speed;
+                car.style.left = position + 'px';
+                
+                // Check if car is out of screen
+                if ((goingRight && position > gameBoard.clientWidth) || 
+                    (!goingRight && position < -carWidth)) {
+                    // Respawn car with new properties
+                    const newLength = 50 + Math.random() * 70;
+                    const respawnSpeed = (0.8 * Math.pow(1.35, gameState.difficulty)) * (0.8 + Math.random() * 0.7);
+                    car.style.width = newLength + 'px';
+                    
+                    if (goingRight) {
+                        position = -newLength;
+                    } else {
+                        position = gameBoard.clientWidth;
+                    }
+                }
+                
+                // Check collision with pig
+                if (gameState.pigPosition === laneIndex) {
+                    const pigLeft = gameBoard.clientWidth / 2 - pigSize / 2;
+                    const pigRight = gameBoard.clientWidth / 2 + pigSize / 2;
+                    const carLeft = position;
+                    const carRight = position + carWidth;
+                    
+                    if (carRight > pigLeft && carLeft < pigRight) {
+                        endGame(false);
+                        return;
+                    }
+                }
+                
+                const animationId = requestAnimationFrame(animate);
+                gameState.animationFrames.push(animationId);
+            }
+            
+            const initialAnimationId = requestAnimationFrame(animate);
+            gameState.animationFrames.push(initialAnimationId);
+        }
+        
+        // Move the pig
+        function movePig() {
+            if (!gameState.isPlaying || gameState.isGameOver) return;
+            
+            const pig = document.getElementById('pig');
+            if (!pig) return;
+            
+            gameState.pigPosition--;
+            
+            // Check if pig reached the end
+            if (gameState.pigPosition < 0) {
+                endGame(true);
+                return;
+            }
+            
+            // Update pig position
+            const laneHeight = window.innerWidth <= 480 ? 30 : 40;
+            const pigSize = 30;
+            pig.style.top = (gameState.pigPosition * laneHeight + (laneHeight - pigSize) / 2) + 'px';
+        }
+        
+        // Start the game
+        function startGame() {
+            // Reset game state
+            gameState.isPlaying = true;
+            gameState.isGameOver = false;
+            gameState.elapsedTime = 0;
+            
+            // Update difficulty display
+            difficultyDisplay.textContent = 'Difficulty: ' + gameState.difficulty;
+            
+            // Show game screen
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            endScreen.style.display = 'none';
+            
+            // Initialize game board
+            initGameBoard();
+            
+            // Generate cars
+            generateCars();
+            
+            // Start timer
+            gameState.startTime = Date.now();
+            gameState.timerInterval = setInterval(updateTimer, 100);
+        }
+        
+        // Update the timer
+        function updateTimer() {
+            if (!gameState.isPlaying || gameState.isGameOver) return;
+            
+            gameState.elapsedTime = (Date.now() - gameState.startTime) / 1000;
+            timer.textContent = 'Time: ' + gameState.elapsedTime.toFixed(1) + 's';
+        }
+        
+        // End the game
+        function endGame(success) {
+            gameState.isPlaying = false;
+            gameState.isGameOver = true;
+            clearInterval(gameState.timerInterval);
+            
+            // Clear car animations
+            gameState.animationFrames.forEach(id => cancelAnimationFrame(id));
+            
+            // Show end screen
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'flex';
+            
+            // Update end screen content
+            if (success) {
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = 'The pig crossed the road safely!';
+                resultTitle.style.color = '#4caf50';
+            } else {
+                resultTitle.textContent = 'Game Over';
+                resultMessage.textContent = 'The pig got hit!';
+                resultTitle.style.color = '#f44336';
+            }
+            
+            timeResult.textContent = 'Time: ' + gameState.elapsedTime.toFixed(1) + 's';
+        }
+    </script>
+</body>
+</html>
