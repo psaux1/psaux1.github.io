@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mortgage Cash Flow Calculator</title>
+  
+  <!-- Include React, ReactDOM and Babel from CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Include Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <!-- The React component -->
+  <script type="text/babel">
+    function MortgageCalculator() {
+      // State for inputs
+      const [inputs, setInputs] = React.useState({
+        balance: 100000,
+        tenor: 360,
+        interestRate: 5.0,
+        cdr: '1',
+        cpr: '10',
+        severity: '30',
+        monthsToRecover: 12,
+        purchasePrice: 100,
+        servicingFee: 0.25
+      });
+      
+      // State for results
+      const [cashFlows, setCashFlows] = React.useState([]);
+      const [error, setError] = React.useState('');
+      const [isCalculating, setIsCalculating] = React.useState(false);
+      const [financialMetrics, setFinancialMetrics] = React.useState({
+        yield: 0,
+        modifiedDuration: 0,
+        weightedAverageLife: 0,
+        cumulativeLoss: 0,
+        cumulativePrepayment: 0
+      });
+
+      // Handle input changes
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setInputs(prevInputs => ({
+          ...prevInputs,
+          [name]: value
+        }));
+      };
+
+      // Parse a vector input string into an array of numbers
+      const parseVector = (input) => {
+        return input.trim().split(/\s+/).map(val => parseFloat(val));
+      };
+
+      // Parse a ramp input string into an array of numbers
+      const parseRamp = (input) => {
+        const match = input.match(/(\d+\.?\d*)\s+ramp\s+(\d+)\s+(\d+\.?\d*)/);
+        if (!match) {
+          throw new Error("Invalid ramp format. Expected format: '<start> ramp <steps> <end>'");
+        }
+        
+        const start = parseFloat(match[1]);
+        const steps = parseInt(match[2]);
+        const end = parseFloat(match[3]);
+        
+        const result = [start];
+        const stepValue = (end - start) / steps;
+        
+        for (let i = 1; i < steps; i++) {
+          result.push(start + i * stepValue);
+        }
+        result.push(end);
+        
+        return result;
+      };
+
+      // Parse input (vector or ramp)
+      const parseInput = (input) => {
+        if (typeof input !== 'string') {
+          throw new Error('Input must be a string');
+        }
+        
+        input = input.trim();
+        
+        // Check if input is a ramp
+        if (input.includes('ramp')) {
+          return parseRamp(input);
+        }
+        
+        // Otherwise, treat as a vector
+        return parseVector(input);
+      };
+
+      // Get value for a specific period from a vector
+      const getValueForPeriod = (vector, period) => {
+        if (period < vector.length) {
+          return vector[period];
+        }
+        return vector[vector.length - 1];
+      };
+
+      // Calculate weighted average life
+      const calculateWAL = (cashFlows) => {
+        let totalPrincipal = 0;
+        let weightedSum = 0;
+        
+        for (let i = 0; i < cashFlows.length; i++) {
+          const flow = cashFlows[i];
+          const principalPayment = flow.scheduledPrincipal + flow.prepaymentBalance + flow.recovery;
+          
+          totalPrincipal += principalPayment;
+          weightedSum += principalPayment * (flow.period / 12); // Convert to years
+        }
+        
+        return totalPrincipal > 0 ? weightedSum / totalPrincipal : 0;
+      };
+
+      // Calculate cumulative loss and prepayment
+      const calculateCumulativeMetrics = (cashFlows, originalBalance) => {
+        let totalDefaulted = 0;
+        let totalRecovery = 0;
+        let totalPrepayment = 0;
+        
+        for (let i = 0; i < cashFlows.length; i++) {
+          const flow = cashFlows[i];
+          totalDefaulted += flow.defaultedBalance;
+          totalRecovery += flow.recovery;
+          totalPrepayment += flow.prepaymentBalance;
+        }
+        
+        const cumulativeLoss = (totalDefaulted - totalRecovery) / originalBalance * 100;
+        const cumulativePrepayment = totalPrepayment / originalBalance * 100;
+        
+        return { cumulativeLoss, cumulativePrepayment };
+      };
+
+      // Calculate yield
+      const calculateYield = (cashFlows, purchaseValue) => {
+        let rate = 0.05; // Start with 5% as initial guess
+        const maxIterations = 100;
+        const tolerance = 0.0000001;
+        
+        for (let i = 0; i < maxIterations; i++) {
+          let presentValue = 0;
+          let derivative = 0;
+          
+          for (let j = 0; j < cashFlows.length; j++) {
+            const flow = cashFlows[j];
+            const t = flow.period / 12; // Convert periods to years
+            const discountFactor = Math.pow(1 + rate, -t);
+            
+            presentValue += flow.totalCash * discountFactor;
+            derivative -= flow.totalCash * t * Math.pow(1 + rate, -t - 1);
+          }
+          
+          presentValue -= purchaseValue;
+          
+          if (Math.abs(presentValue) < tolerance) {
+            return rate * 100; // Convert to percentage
+          }
+          
+          const nextRate = rate - presentValue / derivative;
+          
+          if (Math.abs(nextRate - rate) < tolerance) {
+            return nextRate * 100; // Convert to percentage
+          }
+          
+          rate = nextRate;
+        }
+        
+        return rate * 100; // Return best guess if no convergence
+      };
+
+      // Calculate modified duration
+      const calculateModifiedDuration = (cashFlows, yieldValue) => {
+        const yieldDecimal = yieldValue / 100;
+        let pvCashFlows = 0;
+        let pvTimeWeightedCashFlows = 0;
+        
+        for (let i = 0; i < cashFlows.length; i++) {
+          const flow = cashFlows[i];
+          const t = flow.period / 12; // Convert periods to years
+          const discountFactor = Math.pow(1 + yieldDecimal, -t);
+          
+          pvCashFlows += flow.totalCash * discountFactor;
+          pvTimeWeightedCashFlows += flow.totalCash * t * discountFactor;
+        }
+        
+        const macaulayDuration = pvTimeWeightedCashFlows / pvCashFlows;
+        return macaulayDuration / (1 + yieldDecimal);
+      };
+
+      // Handle form submission
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        calculateMortgageCashFlows();
+      };
+
+      // Calculate mortgage cash flows
+      const calculateMortgageCashFlows = () => {
+        try {
+          setIsCalculating(true);
+          setError('');
+          
+          // Parse inputs - make sure we keep the original input values
+          const originalInputs = {...inputs};
+          const balance = parseFloat(originalInputs.balance);
+          const tenor = parseInt(originalInputs.tenor);
+          const interestRate = parseFloat(originalInputs.interestRate);
+          const monthsToRecover = parseInt(originalInputs.monthsToRecover);
+          const purchasePrice = parseFloat(originalInputs.purchasePrice);
+          const servicingFee = parseFloat(originalInputs.servicingFee);
+          
+          // Calculate purchase value
+          const purchaseValue = (purchasePrice * balance) / 100;
+          
+          // Parse vector inputs
+          const cdrVector = parseInput(originalInputs.cdr);
+          const cprVector = parseInput(originalInputs.cpr);
+          const severityVector = parseInput(originalInputs.severity);
+          
+          // Monthly interest rate
+          const monthlyRate = interestRate / 100 / 12;
+          // Monthly servicing fee rate
+          const monthlyServiceRate = servicingFee / 100 / 12;
+          
+          let outstandingBalance = balance;
+          // Create an array to track future recoveries
+          const pendingRecoveries = Array(monthsToRecover).fill(0);
+          const results = [];
+          
+          // Main calculation loop
+          for (let period = 0; period < tenor && outstandingBalance > 0.01; period++) {
+            // Get rates for this period (as annual percentages)
+            const cdr = getValueForPeriod(cdrVector, period);
+            const cpr = getValueForPeriod(cprVector, period);
+            const severity = getValueForPeriod(severityVector, period);
+            
+            // Convert annual rates to monthly
+            const monthlyDefaultRate = 1 - Math.pow(1 - cdr/100, 1/12);
+            const monthlyPrepaymentRate = 1 - Math.pow(1 - cpr/100, 1/12);
+            
+            const beginningBalance = outstandingBalance;
+            
+            // Calculate defaults (on beginning balance)
+            const defaultedBalance = beginningBalance * monthlyDefaultRate;
+            
+            // Calculate interest on beginning balance
+            const scheduledInterest = beginningBalance * monthlyRate;
+            
+            // Calculate the remaining tenor
+            const remainingTenor = tenor - period;
+            
+            // Calculate the monthly payment based on remaining balance after defaults and remaining tenor
+            const balanceAfterDefaults = beginningBalance - defaultedBalance;
+            
+            let monthlyPayment = 0;
+            if (remainingTenor > 0 && balanceAfterDefaults > 0) {
+              monthlyPayment = balanceAfterDefaults * monthlyRate * 
+                            Math.pow(1 + monthlyRate, remainingTenor) / 
+                            (Math.pow(1 + monthlyRate, remainingTenor) - 1);
+            }
+            
+            // Calculate scheduled principal
+            const scheduledPrincipal = Math.min(
+              monthlyPayment - scheduledInterest,
+              beginningBalance - defaultedBalance
+            );
+            
+            // Calculate prepayments
+            const remainingAfterDefaultsAndScheduled = beginningBalance - defaultedBalance - scheduledPrincipal;
+            const prepaymentBalance = remainingAfterDefaultsAndScheduled * monthlyPrepaymentRate;
+            
+            // Get recovery from previous defaults
+            const recovery = pendingRecoveries.shift() || 0;
+            
+            // Calculate new recovery and add to pending recoveries
+            const newRecovery = defaultedBalance * (1 - severity/100);
+            pendingRecoveries.push(newRecovery);
+            
+            // Calculate interest received (no interest from defaulted balances)
+            const interestReceived = scheduledInterest * (1 - defaultedBalance / beginningBalance);
+            
+            // Calculate servicing fee
+            const servicingFeeAmount = beginningBalance * monthlyServiceRate;
+            
+            // Calculate ending balance
+            const endingBalance = beginningBalance - defaultedBalance - scheduledPrincipal - prepaymentBalance;
+            
+            // Calculate implied coupon (annualized)
+            const impliedCoupon = beginningBalance > 0 ? (interestReceived / beginningBalance) * 1200 : 0;
+            
+            // Calculate total cash
+            const totalCash = scheduledPrincipal + prepaymentBalance + interestReceived + recovery - servicingFeeAmount;
+            
+            // Add results to the array
+            results.push({
+              period: period + 1,
+              beginningBalance,
+              endingBalance,
+              scheduledPrincipal,
+              prepaymentBalance,
+              defaultedBalance,
+              recovery,
+              interestReceived,
+              servicingFeeAmount,
+              impliedCoupon,
+              totalCash,
+              cdr,
+              cpr,
+              severity
+            });
+            
+            outstandingBalance = endingBalance;
+          }
+          
+          // Process any remaining recoveries
+          let period = results.length;
+          for (let i = 0; i < pendingRecoveries.length; i++) {
+            const recovery = pendingRecoveries[i] || 0;
+            if (recovery > 0) {
+              results.push({
+                period: period + 1,
+                beginningBalance: 0,
+                endingBalance: 0,
+                scheduledPrincipal: 0,
+                prepaymentBalance: 0,
+                defaultedBalance: 0,
+                recovery,
+                interestReceived: 0,
+                servicingFeeAmount: 0,
+                impliedCoupon: 0,
+                totalCash: recovery,
+                cdr: 0,
+                cpr: 0,
+                severity: 0
+              });
+              period++;
+            }
+          }
+          
+          // Set the results
+          setCashFlows(results);
+          
+          // Calculate financial metrics
+          try {
+            const yieldValue = calculateYield(results, purchaseValue);
+            const wal = calculateWAL(results);
+            const modifiedDuration = calculateModifiedDuration(results, yieldValue);
+            const { cumulativeLoss, cumulativePrepayment } = calculateCumulativeMetrics(results, balance);
+            
+            setFinancialMetrics({
+              yield: yieldValue,
+              modifiedDuration,
+              weightedAverageLife: wal,
+              cumulativeLoss,
+              cumulativePrepayment
+            });
+          } catch (err) {
+            console.error("Error calculating financial metrics:", err);
+            setFinancialMetrics({
+              yield: 0,
+              modifiedDuration: 0,
+              weightedAverageLife: 0,
+              cumulativeLoss: 0,
+              cumulativePrepayment: 0
+            });
+          }
+          
+          setIsCalculating(false);
+        } catch (err) {
+          setError(`Error calculating mortgage cash flows: ${err.message}`);
+          setCashFlows([]);
+          setIsCalculating(false);
+        }
+      };
+
+      // Calculate totals for the summary
+      const totals = cashFlows.reduce((acc, flow) => {
+        acc.scheduledPrincipal += flow.scheduledPrincipal;
+        acc.prepaymentBalance += flow.prepaymentBalance;
+        acc.defaultedBalance += flow.defaultedBalance;
+        acc.recovery += flow.recovery;
+        acc.interestReceived += flow.interestReceived;
+        acc.servicingFeeAmount += flow.servicingFeeAmount || 0;
+        acc.totalCash += flow.totalCash || 0;
+        return acc;
+      }, {
+        scheduledPrincipal: 0, 
+        prepaymentBalance: 0, 
+        defaultedBalance: 0, 
+        recovery: 0, 
+        interestReceived: 0,
+        servicingFeeAmount: 0,
+        totalCash: 0
+      });
+
+      return (
+        <div className="container mx-auto p-4">
+          <h1 className="text-2xl font-bold mb-6 text-center">Mortgage Cash Flow Calculator</h1>
+          
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+              <p>{error}</p>
+            </div>
+          )}
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Mortgage Balance:
+                  </label>
+                  <input
+                    type="number"
+                    name="balance"
+                    value={inputs.balance}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Mortgage Tenor (months):
+                  </label>
+                  <input
+                    type="number"
+                    name="tenor"
+                    value={inputs.tenor}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Interest Rate (%):
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="interestRate"
+                    value={inputs.interestRate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Purchase Price (%):
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="purchasePrice"
+                    value={inputs.purchasePrice}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                  <small className="text-gray-500">Price as a percentage of mortgage balance</small>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Servicing Fee (%):
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="servicingFee"
+                    value={inputs.servicingFee}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                  <small className="text-gray-500">Annual servicing fee as percentage</small>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    CDR (Vector or Ramp):
+                  </label>
+                  <input
+                    type="text"
+                    name="cdr"
+                    value={inputs.cdr}
+                    onChange={handleInputChange}
+                    placeholder="e.g. '1 2 3' or '1 ramp 4 5'"
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                  <small className="text-gray-500">Enter a vector (e.g., "1 2 3") or a ramp (e.g., "1 ramp 4 5")</small>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    CPR (Vector or Ramp):
+                  </label>
+                  <input
+                    type="text"
+                    name="cpr"
+                    value={inputs.cpr}
+                    onChange={handleInputChange}
+                    placeholder="e.g. '5 10 15' or '5 ramp 2 15'"
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                  <small className="text-gray-500">Enter a vector (e.g., "10 15 20") or a ramp (e.g., "10 ramp 2 20")</small>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Severity (Vector or Ramp):
+                  </label>
+                  <input
+                    type="text"
+                    name="severity"
+                    value={inputs.severity}
+                    onChange={handleInputChange}
+                    placeholder="e.g. '30 40 50' or '30 ramp 3 60'"
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                  <small className="text-gray-500">Enter a vector (e.g., "30 40 50") or a ramp (e.g., "30 ramp 3 60")</small>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Months to Recover:
+                  </label>
+                  <input
+                    type="number"
+                    name="monthsToRecover"
+                    value={inputs.monthsToRecover}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+                  disabled={isCalculating}
+                >
+                  {isCalculating ? 'Calculating...' : 'Calculate Cash Flows'}
+                </button>
+              </form>
+              
+              {cashFlows.length > 0 && (
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-bold mb-4">Summary</h2>
+                  <ul className="space-y-2">
+                    <li><strong>Total Scheduled Principal:</strong> ${totals.scheduledPrincipal.toFixed(2)}</li>
+                    <li><strong>Total Unscheduled Principal:</strong> ${totals.prepaymentBalance.toFixed(2)}</li>
+                    <li><strong>Total Defaulted Balance:</strong> ${totals.defaultedBalance.toFixed(2)}</li>
+                    <li><strong>Total Recovery:</strong> ${totals.recovery.toFixed(2)}</li>
+                    <li><strong>Total Interest Received:</strong> ${totals.interestReceived.toFixed(2)}</li>
+                    <li><strong>Total Servicing Fee:</strong> ${totals.servicingFeeAmount.toFixed(2)}</li>
+                    <li><strong>Total Cash Flow:</strong> ${totals.totalCash.toFixed(2)}</li>
+                    <li><strong>Total Periods:</strong> {cashFlows.length}</li>
+                  </ul>
+                  
+                  <h3 className="text-lg font-bold mt-6 mb-2">Financial Metrics</h3>
+                  <ul className="space-y-2">
+                    <li><strong>Yield:</strong> {financialMetrics.yield.toFixed(2)}%</li>
+                    <li><strong>Modified Duration:</strong> {financialMetrics.modifiedDuration.toFixed(2)} years</li>
+                    <li><strong>Weighted Average Life:</strong> {financialMetrics.weightedAverageLife.toFixed(2)} years</li>
+                    <li><strong>Cumulative Loss:</strong> {financialMetrics.cumulativeLoss.toFixed(2)}%</li>
+                    <li><strong>Cumulative Prepayment:</strong> {financialMetrics.cumulativePrepayment.toFixed(2)}%</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+            
+            {cashFlows.length > 0 && (
+              <div className="overflow-auto">
+                <h2 className="text-xl font-bold mb-4">Cash Flow Results</h2>
+                <table className="min-w-full bg-white shadow-md rounded">
+                  <thead className="bg-gray-200">
+                    <tr>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-left">Period</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Beginning Balance</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Ending Balance</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Scheduled Principal</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Unscheduled Principal</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Defaulted Balance</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Recovery</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Interest Received</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Implied Coupon (%)</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">CDR</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">CPR</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Severity</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Servicing Fee</th>
+                      <th className="sticky top-0 bg-gray-200 px-2 py-2 border text-right">Total Cash</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cashFlows.map(flow => (
+                      <tr key={flow.period} className="hover:bg-gray-100">
+                        <td className="px-2 py-2 border text-left">{flow.period}</td>
+                        <td className="px-2 py-2 border text-right">${flow.beginningBalance.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.endingBalance.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.scheduledPrincipal.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.prepaymentBalance.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.defaultedBalance.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.recovery.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.interestReceived.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">{flow.impliedCoupon.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">{flow.cdr.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">{flow.cpr.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">{flow.severity.toFixed(2)}</td>
+                        <td className="px-2 py-2 border text-right">${flow.servicingFeeAmount ? flow.servicingFeeAmount.toFixed(2) : '0.00'}</td>
+                        <td className="px-2 py-2 border text-right">${flow.totalCash ? flow.totalCash.toFixed(2) : '0.00'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Render the component to the DOM
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<MortgageCalculator />);
+  </script>
+</body>
+</html>
