@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbital - Physics-Based Space Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #0a0a1a;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    
+    .game-title {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      color: #61dafb;
+      text-shadow: 0 0 10px rgba(97, 218, 251, 0.5);
+    }
+    
+    .game-description {
+      font-size: 1.1rem;
+      max-width: 600px;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+    
+    .level-select {
+      background-color: #1a1a2e;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .level-title {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .level-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+    
+    .level-button {
+      background-color: #4361ee;
+      border: none;
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .level-button:nth-child(2) {
+      background-color: #7b2cbf;
+    }
+    
+    .level-button:nth-child(3) {
+      background-color: #e63946;
+    }
+    
+    .level-button:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.1);
+    }
+    
+    .level-button-text {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+    
+    .level-button-subtext {
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+    }
+    
+    .instructions {
+      background-color: #1a1a2e;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      max-width: 600px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .instructions-title {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    
+    .instructions-list {
+      list-style-type: disc;
+      padding-left: 1.5rem;
+    }
+    
+    .instructions-list li {
+      margin-bottom: 0.3rem;
+    }
+    
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 1rem;
+    }
+    
+    .menu-button {
+      background-color: #2a2a3a;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .menu-button:hover {
+      background-color: #3a3a4a;
+    }
+    
+    .toggle-button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.3rem;
+      border: none;
+      cursor: pointer;
+      color: white;
+      transition: background-color 0.2s;
+    }
+    
+    .toggle-active {
+      background-color: #4caf50;
+    }
+    
+    .toggle-inactive {
+      background-color: #2a2a3a;
+    }
+    
+    canvas {
+      border: 1px solid #333;
+      border-radius: 0.5rem;
+      background-color: black;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    
+    .controls-container {
+      margin-top: 1rem;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    .controls {
+      background-color: #1a1a2e;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+    
+    .controls-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    
+    .control-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .control-label {
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+    
+    .launch-button {
+      background-color: #4361ee;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-weight: bold;
+    }
+    
+    .launch-button:hover {
+      background-color: #3a56d4;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    @media (max-width: 600px) {
+      .game-title {
+        font-size: 2rem;
+      }
+      
+      .level-buttons {
+        flex-direction: column;
+      }
+      
+      .controls-grid {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container" class="container">
+    <!-- Game will be inserted here via JavaScript -->
+  </div>
+
+  <script>
+    // Constants
+    const G = 9.8; // Gravitational constant (scaled for game)
+    const ORBIT_CHECK_TIME = 5000; // Time to check if orbit is stable (ms)
+    
+    // Game state
+    let gameState = 'menu'; // menu, playing, win, lose
+    let level = 1;
+    let score = 0;
+    let objectsInOrbit = 0;
+    let launchPower = 50;
+    let launchAngle = 45;
+    let showTrajectory = true;
+    
+    // Game objects
+    let gravitySources = [];
+    let objects = [];
+    let launchPos = { x: 0, y: 0 };
+    
+    // Canvas and animation references
+    let canvas;
+    let ctx;
+    let animationFrame;
+    
+    // Dimensions
+    let dimensions = {
+      width: window.innerWidth > 1200 ? 800 : Math.min(window.innerWidth * 0.9, 800),
+      height: window.innerHeight > 800 ? 600 : Math.min(window.innerHeight * 0.7, 600)
+    };
+    
+    // Initialize game
+    function init() {
+      renderUI();
+      
+      // Handle window resize
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    
+    function handleResize() {
+      dimensions = {
+        width: window.innerWidth > 1200 ? 800 : Math.min(window.innerWidth * 0.9, 800),
+        height: window.innerHeight > 800 ? 600 : Math.min(window.innerHeight * 0.7, 600)
+      };
+      
+      if (gameState === 'playing' && canvas) {
+        canvas.width = dimensions.width;
+        canvas.height = dimensions.height;
+        setupLevel(level);
+      }
+      
+      renderUI();
+    }
+    
+    function handleKeyDown(e) {
+      if (gameState !== 'playing') return;
+      
+      switch (e.key) {
+        case ' ':
+          launchObject();
+          break;
+        case 'ArrowUp':
+          launchAngle = Math.min(launchAngle + 5, 90);
+          updateControlsUI();
+          break;
+        case 'ArrowDown':
+          launchAngle = Math.max(launchAngle - 5, 0);
+          updateControlsUI();
+          break;
+        case 'ArrowLeft':
+          launchPower = Math.max(launchPower - 5, 10);
+          updateControlsUI();
+          break;
+        case 'ArrowRight':
+          launchPower = Math.min(launchPower + 5, 100);
+          updateControlsUI();
+          break;
+        case 't':
+          toggleTrajectory();
+          break;
+      }
+    }
+    
+    function updateControlsUI() {
+      const powerSlider = document.getElementById('power-slider');
+      const angleSlider = document.getElementById('angle-slider');
+      const powerValue = document.getElementById('power-value');
+      const angleValue = document.getElementById('angle-value');
+      
+      if (powerSlider && angleSlider) {
+        powerSlider.value = launchPower;
+        angleSlider.value = launchAngle;
+        powerValue.textContent = launchPower;
+        angleValue.textContent = launchAngle;
+      }
+    }
+    
+    function toggleTrajectory() {
+      showTrajectory = !showTrajectory;
+      const trajectoryButton = document.getElementById('trajectory-button');
+      if (trajectoryButton) {
+        trajectoryButton.className = showTrajectory 
+          ? 'toggle-button toggle-active' 
+          : 'toggle-button toggle-inactive';
+        trajectoryButton.textContent = showTrajectory 
+          ? 'Hide Trajectory' 
+          : 'Show Trajectory';
+      }
+    }
+    
+    // Setup level
+    function setupLevel(selectedLevel) {
+      level = selectedLevel;
+      
+      // Reset game state
+      objects = [];
+      objectsInOrbit = 0;
+      score = 0;
+      
+      const width = dimensions.width;
+      const height = dimensions.height;
+      
+      // Setup gravity sources based on level
+      if (level === 1) {
+        // Single gravity source in center
+        gravitySources = [
+          { x: width/2, y: height/2, mass: 500, radius: 30, color: '#FFD700' }
+        ];
+      } else if (level === 2) {
+        // Two gravity sources
+        gravitySources = [
+          { x: width/3, y: height/2, mass: 400, radius: 25, color: '#FFD700' },
+          { x: 2*width/3, y: height/2, mass: 350, radius: 22, color: '#FF4500' }
+        ];
+      } else if (level === 3) {
+        // Three gravity sources in a triangle
+        gravitySources = [
+          { x: width/2, y: height/3, mass: 350, radius: 22, color: '#FFD700' },
+          { x: width/3, y: 2*height/3, mass: 300, radius: 20, color: '#FF4500' },
+          { x: 2*width/3, y: 2*height/3, mass: 325, radius: 21, color: '#32CD32' }
+        ];
+      }
+      
+      // Set launch position
+      launchPos = { x: width/6, y: height - height/6 };
+      
+      // Update UI elements to show current level
+      updateStatsUI();
+    }
+    
+    function updateStatsUI() {
+      const scoreElement = document.getElementById('score-value');
+      const orbitsElement = document.getElementById('orbits-value');
+      const levelElement = document.getElementById('level-value');
+      
+      if (scoreElement && orbitsElement && levelElement) {
+        scoreElement.textContent = score;
+        orbitsElement.textContent = objectsInOrbit;
+        levelElement.textContent = level;
+      }
+    }
+    
+    // Start the game
+    function startGame(selectedLevel) {
+      gameState = 'playing';
+      renderUI();
+      
+      canvas = document.getElementById('game-canvas');
+      ctx = canvas.getContext('2d');
+      
+      setupLevel(selectedLevel);
+      gameLoop();
+    }
+    
+    // Return to menu
+    function returnToMenu() {
+      gameState = 'menu';
+      
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+      
+      renderUI();
+    }
+    
+    // Launch a new object
+    function launchObject() {
+      // Convert angle to radians
+      const angleRad = launchAngle * Math.PI / 180;
+      
+      // Calculate velocity components
+      const vx = launchPower * Math.cos(angleRad) * 0.1;
+      const vy = -launchPower * Math.sin(angleRad) * 0.1;
+      
+      const newObject = {
+        id: Date.now(),
+        x: launchPos.x,
+        y: launchPos.y,
+        vx: vx,
+        vy: vy,
+        radius: 8,
+        mass: 10,
+        color: getRandomColor(),
+        positions: [],
+        orbitalTime: 0,
+        stableOrbit: false,
+        destroyed: false
+      };
+      
+      objects.push(newObject);
+    }
+    
+    // Main game loop
+    function gameLoop() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw background
+      drawBackground();
+      
+      // Draw gravity sources
+      gravitySources.forEach(source => {
+        drawGravitySource(source);
+      });
+      
+      // Update and draw objects
+      updateObjects();
+      objects.forEach(obj => {
+        drawObject(obj);
+      });
+      
+      // Draw launcher
+      drawLauncher();
+      
+      // Draw trajectory prediction if enabled
+      if (showTrajectory) {
+        drawTrajectoryPreview();
+      }
+      
+      // Draw UI stats directly on canvas
+      drawUI();
+      
+      // Continue animation loop
+      animationFrame = requestAnimationFrame(gameLoop);
+    }
+    
+    // Update all objects (apply physics)
+    function updateObjects() {
+      if (objects.length === 0) return;
+      
+      const updatedObjects = [];
+      
+      for (let i = 0; i < objects.length; i++) {
+        const obj = objects[i];
+        
+        // Skip if object is destroyed
+        if (obj.destroyed) continue;
+        
+        const newObj = { ...obj };
+        
+        // Apply gravity from all sources
+        for (let j = 0; j < gravitySources.length; j++) {
+          const source = gravitySources[j];
+          const dx = source.x - obj.x;
+          const dy = source.y - obj.y;
+          const distSq = dx * dx + dy * dy;
+          const dist = Math.sqrt(distSq);
+          
+          // Skip if too close (collision)
+          if (dist < source.radius + obj.radius) {
+            newObj.destroyed = true;
+            break;
+          }
+          
+          // Calculate gravitational force
+          const force = G * source.mass * obj.mass / distSq;
+          
+          // Calculate acceleration components
+          const ax = force * dx / dist / obj.mass;
+          const ay = force * dy / dist / obj.mass;
+          
+          // Update velocity
+          newObj.vx += ax;
+          newObj.vy += ay;
+        }
+        
+        // Skip further updates if destroyed
+        if (newObj.destroyed) {
+          continue;
+        }
+        
+        // Check collisions with other objects
+        for (let j = 0; j < objects.length; j++) {
+          if (i === j) continue;
+          
+          const other = objects[j];
+          if (other.destroyed) continue;
+          
+          const dx = other.x - obj.x;
+          const dy = other.y - obj.y;
+          const distSq = dx * dx + dy * dy;
+          const minDist = obj.radius + other.radius;
+          
+          if (distSq < minDist * minDist) {
+            newObj.destroyed = true;
+            break;
+          }
+        }
+        
+        // Skip further updates if destroyed
+        if (newObj.destroyed) {
+          continue;
+        }
+        
+        // Check if out of bounds
+        if (newObj.x < -50 || newObj.x > dimensions.width + 50 || 
+            newObj.y < -50 || newObj.y > dimensions.height + 50) {
+          newObj.destroyed = true;
+          continue;
+        }
+        
+        // Update position
+        newObj.x += newObj.vx;
+        newObj.y += newObj.vy;
+        
+        // Track orbit data for stability detection
+        newObj.positions.push({ x: newObj.x, y: newObj.y });
+        if (newObj.positions.length > 60) { // Keep last 60 positions
+          newObj.positions.shift();
+        }
+        
+        // Track orbit count (basic detection)
+        newObj.orbitalTime += 1;
+        
+        // If object has been alive long enough, check if it's in a stable orbit
+        if (newObj.orbitalTime > ORBIT_CHECK_TIME / 16.67 && !newObj.stableOrbit) {
+          const isStable = checkStableOrbit(newObj);
+          if (isStable) {
+            newObj.stableOrbit = true;
+            objectsInOrbit += 1;
+            score += 100 * level;
+            updateStatsUI();
+          }
+        }
+        
+        updatedObjects.push(newObj);
+      }
+      
+      // Replace objects array with filtered objects
+      objects = updatedObjects;
+    }
+    
+    // Check if an orbit is stable (simplified algorithm)
+    function checkStableOrbit(obj) {
+      if (obj.positions.length < 30) return false;
+      
+      // Calculate center of gravity (simplified)
+      let centerX = 0;
+      let centerY = 0;
+      let totalMass = 0;
+      
+      for (let i = 0; i < gravitySources.length; i++) {
+        const source = gravitySources[i];
+        centerX += source.x * source.mass;
+        centerY += source.y * source.mass;
+        totalMass += source.mass;
+      }
+      
+      centerX /= totalMass;
+      centerY /= totalMass;
+      
+      // Calculate average radius
+      let totalRadius = 0;
+      for (let i = 0; i < obj.positions.length; i++) {
+        const pos = obj.positions[i];
+        const dx = pos.x - centerX;
+        const dy = pos.y - centerY;
+        totalRadius += Math.sqrt(dx * dx + dy * dy);
+      }
+      const avgRadius = totalRadius / obj.positions.length;
+      
+      // Check variance in radius
+      let variance = 0;
+      for (let i = 0; i < obj.positions.length; i++) {
+        const pos = obj.positions[i];
+        const dx = pos.x - centerX;
+        const dy = pos.y - centerY;
+        const radius = Math.sqrt(dx * dx + dy * dy);
+        variance += Math.pow(radius - avgRadius, 2);
+      }
+      variance /= obj.positions.length;
+      
+      // Check if variance is low enough to be considered stable
+      return variance < avgRadius * 0.2;
+    }
+    
+    // Drawing functions
+    function drawBackground() {
+      // Starfield background
+      ctx.fillStyle = '#0F0F23';
+      ctx.fillRect(0, 0, dimensions.width, dimensions.height);
+      
+      // Draw some stars
+      ctx.fillStyle = '#FFFFFF';
+      for (let i = 0; i < 100; i++) {
+        const x = Math.random() * dimensions.width;
+        const y = Math.random() * dimensions.height;
+        const size = Math.random() * 2 + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    function drawGravitySource(source) {
+      // Glow effect
+      const gradient = ctx.createRadialGradient(
+        source.x, source.y, source.radius * 0.5,
+        source.x, source.y, source.radius * 2
+      );
+      gradient.addColorStop(0, source.color);
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(source.x, source.y, source.radius * 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main body
+      ctx.fillStyle = source.color;
+      ctx.beginPath();
+      ctx.arc(source.x, source.y, source.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    function drawObject(obj) {
+      // Draw trail
+      if (obj.positions.length > 1) {
+        ctx.strokeStyle = obj.color + '80'; // Add transparency
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(obj.positions[0].x, obj.positions[0].y);
+        
+        for (let i = 1; i < obj.positions.length; i++) {
+          ctx.lineTo(obj.positions[i].x, obj.positions[i].y);
+        }
+        
+        ctx.stroke();
+      }
+      
+      // Draw object
+      ctx.fillStyle = obj.color;
+      ctx.beginPath();
+      ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Highlight for stable orbits
+      if (obj.stableOrbit) {
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(obj.x, obj.y, obj.radius + 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    
+    function drawLauncher() {
+      const angleRad = launchAngle * Math.PI / 180;
+      const length = launchPower * 0.5;
+      
+      // Draw launcher base
+      ctx.fillStyle = '#888888';
+      ctx.beginPath();
+      ctx.arc(launchPos.x, launchPos.y, 15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Draw launcher direction
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(launchPos.x, launchPos.y);
+      ctx.lineTo(
+        launchPos.x + Math.cos(angleRad) * length,
+        launchPos.y - Math.sin(angleRad) * length
+      );
+      ctx.stroke();
+    }
+    
+    function drawTrajectoryPreview() {
+      const angleRad = launchAngle * Math.PI / 180;
+      const vx = launchPower * Math.cos(angleRad) * 0.1;
+      const vy = -launchPower * Math.sin(angleRad) * 0.1;
+      
+      // Predict trajectory (simplified)
+      const points = [];
+      let x = launchPos.x;
+      let y = launchPos.y;
+      let vxTemp = vx;
+      let vyTemp = vy;
+      
+      // Show 30 steps of prediction
+      for (let i = 0; i < 30; i++) {
+        points.push({ x, y });
+        
+        // Apply gravity from all sources (simplified)
+        let totalAx = 0;
+        let totalAy = 0;
+        
+        for (let j = 0; j < gravitySources.length; j++) {
+          const source = gravitySources[j];
+          const dx = source.x - x;
+          const dy = source.y - y;
+          const distSq = dx * dx + dy * dy;
+          const dist = Math.sqrt(distSq);
+          
+          if (dist < source.radius + 8) continue; // Skip if collision would occur
+          
+          const force = G * source.mass * 10 / distSq;
+          totalAx += force * dx / dist / 10;
+          totalAy += force * dy / dist / 10;
+        }
+        
+        // Update velocity and position
+        vxTemp += totalAx;
+        vyTemp += totalAy;
+        x += vxTemp;
+        y += vyTemp;
+      }
+      
+      // Draw predicted trajectory
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      
+      ctx.stroke();
+    }
+    
+    function drawUI() {
+      // Draw score and objects in orbit
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '16px Arial';
+      ctx.fillText(`Score: ${score}`, 20, 30);
+      ctx.fillText(`Objects in Orbit: ${objectsInOrbit}`, 20, 50);
+      ctx.fillText(`Level: ${level}`, 20, 70);
+      
+      // Draw controls info
+      ctx.fillText(`Power: ${launchPower}`, dimensions.width - 150, dimensions.height - 60);
+      ctx.fillText(`Angle: ${launchAngle}°`, dimensions.width - 150, dimensions.height - 40);
+      ctx.fillText(`Press SPACE to launch`, dimensions.width - 150, dimensions.height - 20);
+    }
+    
+    // Utility function to get random color
+    function getRandomColor() {
+      const colors = ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3', '#33FFF3'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    // Render UI based on game state
+    function renderUI() {
+      const container = document.getElementById('game-container');
+      
+      if (gameState === 'menu') {
+        container.innerHTML = `
+          <h1 class="game-title">Orbital</h1>
+          <p class="game-description">
+            Launch objects into orbit around gravity wells. 
+            Create stable orbits without collisions.
+          </p>
+          
+          <div class="level-select">
+            <h2 class="level-title">Select Level</h2>
+            <div class="level-buttons">
+              <button class="level-button" onclick="startGame(1)">
+                <span class="level-button-text">Level 1</span>
+                <span class="level-button-subtext">1 Gravity Source</span>
+              </button>
+              
+              <button class="level-button" onclick="startGame(2)">
+                <span class="level-button-text">Level 2</span>
+                <span class="level-button-subtext">2 Gravity Sources</span>
+              </button>
+              
+              <button class="level-button" onclick="startGame(3)">
+                <span class="level-button-text">Level 3</span>
+                <span class="level-button-subtext">3 Gravity Sources</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="instructions">
+            <h2 class="instructions-title">How to Play</h2>
+            <ul class="instructions-list">
+              <li>Use Arrow Keys to adjust launch angle and power</li>
+              <li>Press SPACE to launch an object</li>
+              <li>Press T to toggle trajectory preview</li>
+              <li>Create stable orbits to score points</li>
+              <li>Avoid collisions with gravity sources or other objects</li>
+            </ul>
+          </div>
+        `;
+      } else if (gameState === 'playing') {
+        container.innerHTML = `
+          <div class="game-container">
+            <div class="game-header">
+              <button class="menu-button" onclick="returnToMenu()">
+                Back to Menu
+              </button>
+              
+              <div>
+                <span>Score: <span id="score-value">${score}</span></span> | 
+                <span>Orbits: <span id="orbits-value">${objectsInOrbit}</span></span> | 
+                <span>Level: <span id="level-value">${level}</span></span>
+              </div>
+              
+              <button id="trajectory-button" class="toggle-button ${showTrajectory ? 'toggle-active' : 'toggle-inactive'}" onclick="toggleTrajectory()">
+                ${showTrajectory ? 'Hide Trajectory' : 'Show Trajectory'}
+              </button>
+            </div>
+            
+            <canvas id="game-canvas" width="${dimensions.width}" height="${dimensions.height}"></canvas>
+            
+            <div class="controls-container">
+              <div class="controls">
+                <div class="controls-grid">
+                  <div class="control-group">
+                    <div class="control-label">Launch Power: <span id="power-value">${launchPower}</span></div>
+                    <input 
+                      id="power-slider"
+                      type="range" 
+                      min="10" 
+                      max="100" 
+                      value="${launchPower}" 
+                      oninput="launchPower = parseInt(this.value); document.getElementById('power-value').textContent = this.value;"
+                    />
+                  </div>
+                  
+                  <div class="control-group">
+                    <div class="control-label">Launch Angle: <span id="angle-value">${launchAngle}</span>°</div>
+                    <input 
+                      id="angle-slider"
+                      type="range" 
+                      min="0" 
+                      max="90" 
+                      value="${launchAngle}" 
+                      oninput="launchAngle = parseInt(this.value); document.getElementById('angle-value').textContent = this.value;"
+                    />
+                  </div>
+                  
+                  <button class="launch-button" onclick="launchObject()">
+                    Launch (Space)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // Initialize the game on load
+    window.onload = init;
+  </script>
+</body>
+</html>
